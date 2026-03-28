@@ -63,7 +63,7 @@ def main() -> None:
     base_url = os.environ.get("PHOENIX_BASE_URL", "http://localhost:6006")
     api_key = os.environ.get("PHOENIX_API_KEY")
 
-    client_kwargs: dict = {"base_url": base_url}
+    client_kwargs: dict = {"endpoint": base_url}
     if api_key:
         client_kwargs["api_key"] = api_key
 
