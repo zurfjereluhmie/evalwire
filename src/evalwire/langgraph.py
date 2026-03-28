@@ -63,13 +63,10 @@ def build_subgraph(
         graph.add_node(node_name, node_fn)
 
     node_names = [n for n, _ in nodes]
-    for i, node_name in enumerate(node_names):
-        if i == 0:
-            graph.add_edge(START, node_name)
-        if i < len(node_names) - 1:
-            graph.add_edge(node_name, node_names[i + 1])
-        else:
-            graph.add_edge(node_name, END)
+    graph.add_edge(START, node_names[0])
+    for a, b in zip(node_names, node_names[1:]):
+        graph.add_edge(a, b)
+    graph.add_edge(node_names[-1], END)
 
     compile_kwargs: dict[str, Any] = {}
     if checkpointer is not None:

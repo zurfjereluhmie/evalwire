@@ -88,17 +88,12 @@ class DatasetUploader:
         delimiter = self.delimiter
         for col in df.columns:
             if pd.api.types.is_string_dtype(df[col]):
-                mask = (
-                    df[col].astype(str).str.contains(delimiter, regex=False, na=False)
-                )
+                as_str = df[col].astype(str)
+                mask = as_str.str.contains(delimiter, regex=False, na=False)
                 if mask.any() or col == self.tag_column:
-                    df[col] = (
-                        df[col]
-                        .astype(str)
-                        .apply(
-                            lambda v, d=delimiter: (
-                                [s.strip() for s in v.split(d)] if d in v else v
-                            )
+                    df[col] = as_str.apply(
+                        lambda v, d=delimiter: (
+                            [s.strip() for s in v.split(d)] if d in v else v
                         )
                     )
         return df

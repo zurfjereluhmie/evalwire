@@ -132,61 +132,76 @@ class ExperimentRunner:
             )
             return found
 
-        # Ensure the parent of experiments_dir is on sys.path so that
-        # relative imports inside experiment modules work.
+        # Temporarily insert the parent of experiments_dir on sys.path so that
+        # relative imports inside experiment modules work. We use try/finally to
+        # restore sys.path afterwards so the mutation does not leak into the
+        # broader process (important in long-running servers and test suites).
         parent = str(self.experiments_dir.parent.resolve())
-        if parent not in sys.path:
+        path_inserted = parent not in sys.path
+        if path_inserted:
             sys.path.insert(0, parent)
 
-        for subdir in sorted(self.experiments_dir.iterdir()):
-            if not subdir.is_dir():
-                continue
-            exp_name = subdir.name
-            if names is not None and exp_name not in names:
-                continue
-
-            task_file = subdir / "task.py"
-            if not task_file.exists():
-                logger.debug("Skipping %r — no task.py found.", exp_name)
-                continue
-
-            init_file = subdir / "__init__.py"
-            if not init_file.exists():
-                init_file.touch()
-                logger.debug("Created missing __init__.py in %r.", exp_name)
-
-            task = self._load_attribute(task_file, "task")
-            if task is None:
-                logger.warning(
-                    "task.py in %r has no 'task' callable; skipping.", exp_name
-                )
-                continue
-
-            evaluators: list[Any] = []
-            for py_file in sorted(subdir.glob("*.py")):
-                if py_file.stem in ("task", "__init__"):
+        try:
+            for subdir in sorted(self.experiments_dir.iterdir()):
+                if not subdir.is_dir():
                     continue
-                evaluator = self._load_attribute(py_file, py_file.stem)
-                if evaluator is not None:
-                    evaluators.append(evaluator)
-                else:
-                    logger.warning(
-                        "Evaluator file %s has no callable %r; skipping.",
-                        py_file,
-                        py_file.stem,
-                    )
+                exp_name = subdir.name
+                if names is not None and exp_name not in names:
+                    continue
 
-            found.append((exp_name, task, evaluators))
-            logger.debug(
-                "Discovered experiment %r with %d evaluator(s).",
-                exp_name,
-                len(evaluators),
-            )
+                task_file = subdir / "task.py"
+                if not task_file.exists():
+                    logger.debug("Skipping %r — no task.py found.", exp_name)
+                    continue
+
+                init_file = subdir / "__init__.py"
+                if not init_file.exists():
+                    init_file.touch()
+                    logger.debug("Created missing __init__.py in %r.", exp_name)
+
+                task = self._load_attribute(task_file, "task")
+                if task is None:
+                    logger.warning(
+                        "task.py in %r has no 'task' callable; skipping.", exp_name
+                    )
+                    continue
+
+                evaluators: list[Any] = []
+                for py_file in sorted(subdir.glob("*.py")):
+                    if py_file.stem in ("task", "__init__"):
+                        continue
+                    evaluator = self._load_attribute(py_file, py_file.stem)
+                    if evaluator is not None:
+                        evaluators.append(evaluator)
+                    else:
+                        logger.warning(
+                            "Evaluator file %s has no callable %r; skipping.",
+                            py_file,
+                            py_file.stem,
+                        )
+
+                found.append((exp_name, task, evaluators))
+                logger.debug(
+                    "Discovered experiment %r with %d evaluator(s).",
+                    exp_name,
+                    len(evaluators),
+                )
+        finally:
+            if path_inserted and parent in sys.path:
+                sys.path.remove(parent)
 
         return found
 
     def _load_attribute(self, path: Path, attribute: str) -> Any:
-        """Import a Python file and return the named attribute, or None."""
+        """Import a Python file and return the named attribute, or None.
+
+        We use the low-level ``importlib.util.spec_from_file_location`` /
+        ``module_from_spec`` / ``exec_module`` API (rather than the higher-level
+        ``importlib.import_module``) deliberately: it lets us assign a stable,
+        unique module name (``_evalwire_exp_<dir>_<stem>``) without polluting
+        any package namespace or relying on the directory structure being a
+        proper Python package.
+        """
         module_name = f"_evalwire_exp_{path.parent.name}_{path.stem}"
         try:
             spec = importlib.util.spec_from_file_location(module_name, path)
