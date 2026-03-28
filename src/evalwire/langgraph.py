@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph
 
 
 def build_subgraph(
@@ -13,7 +16,7 @@ def build_subgraph(
     *,
     name: str | None = None,
     checkpointer: Any = None,
-) -> Any:
+) -> CompiledStateGraph:
     """Assemble a minimal linear StateGraph from a list of node callables.
 
     Edges are added in declaration order:
