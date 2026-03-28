@@ -4,7 +4,6 @@ import textwrap
 from pathlib import Path
 from unittest.mock import MagicMock
 
-import pandas as pd
 import pytest
 
 
@@ -20,26 +19,6 @@ def sample_csv(tmp_path: Path) -> Path:
     csv_file = tmp_path / "testset.csv"
     csv_file.write_text(content)
     return csv_file
-
-
-@pytest.fixture()
-def sample_df() -> pd.DataFrame:
-    """DataFrame equivalent of sample_csv (already parsed)."""
-    return pd.DataFrame(
-        {
-            "user_query": ["find cycling paths", "find parks", "route me home"],
-            "expected_output": [
-                ["url-a", "url-b"],
-                "url-c",
-                "home",
-            ],
-            "tags": [
-                ["es_search", "source_router"],
-                "es_search",
-                "source_router",
-            ],
-        }
-    )
 
 
 def _make_dataset_mock(name: str, id_: str = "ds-1") -> MagicMock:

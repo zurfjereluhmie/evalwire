@@ -14,8 +14,14 @@ inside a sync task would raise ``RuntimeError: asyncio.run() cannot be called
 from a running event loop`` because Phoenix already runs inside one.
 """
 
+from __future__ import annotations
+
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from phoenix.experiments.types import Example
 
 # Allow ``from agent.graph import ...`` when running from the demo/ root.
 _demo_root = Path(__file__).resolve().parents[2]
@@ -27,7 +33,7 @@ from agent.graph import RAGState, retrieve  # noqa: E402
 from evalwire.langgraph import invoke_node  # noqa: E402
 
 
-async def task(example) -> list[str]:
+async def task(example: Example) -> list[str]:
     """Run the retrieve node for a single dataset example.
 
     Parameters
@@ -41,5 +47,5 @@ async def task(example) -> list[str]:
     list[str]
         The titles of the documents retrieved for the query.
     """
-    result = await invoke_node(retrieve, example.input["user_query"], RAGState)
+    result = await invoke_node(retrieve, example.input["user_query"], RAGState)  # ty: ignore[invalid-argument-type]
     return result["retrieved_titles"]

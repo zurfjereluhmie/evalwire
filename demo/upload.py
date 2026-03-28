@@ -12,15 +12,9 @@ Environment variables
 
 import argparse
 import logging
-import os
-import sys
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-
-# ---------------------------------------------------------------------------
-# Locate the CSV relative to this file so the script can be run from anywhere.
-# ---------------------------------------------------------------------------
 
 _DEMO_DIR = Path(__file__).resolve().parent
 _CSV_PATH = _DEMO_DIR / "data" / "testset.csv"
@@ -36,30 +30,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # ------------------------------------------------------------------
-    # Build Phoenix client
-    # ------------------------------------------------------------------
-    try:
-        import phoenix as px
-    except ImportError:
-        sys.exit(
-            "arize-phoenix is not installed. "
-            "Run: pip install 'evalwire[all]' or pip install arize-phoenix"
-        )
+    from demo.utils import make_phoenix_client
 
-    base_url = os.environ.get("PHOENIX_BASE_URL", "http://localhost:6006")
-    api_key = os.environ.get("PHOENIX_API_KEY")
+    client = make_phoenix_client()
 
-    client_kwargs: dict = {"endpoint": base_url}
-    if api_key:
-        client_kwargs["api_key"] = api_key
-
-    client = px.Client(**client_kwargs)
-    logging.getLogger(__name__).info("Connected to Phoenix at %s", base_url)
-
-    # ------------------------------------------------------------------
-    # Upload
-    # ------------------------------------------------------------------
     from evalwire import DatasetUploader
 
     uploader = DatasetUploader(

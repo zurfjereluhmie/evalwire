@@ -104,11 +104,20 @@ class RAGState:
     answer: str = ""
 
 
+# Instantiate the LLM once at module level to avoid re-creating a client
+# object for every example during an evaluation run.
+_LLM = init_chat_model("gpt-4.1-mini", model_provider="openai")
+
+
 def retrieve(state: RAGState) -> dict:
     """Keyword-match the user query against the in-memory corpus.
 
     Returns the top-5 document titles sorted by the number of query words
     found in the document body.
+
+    Note: tokenisation uses ``str.split()`` (whitespace only), so punctuation
+    is not stripped. This is intentional for a minimal demo — production
+    retrieval would normalise and stem tokens.
     """
     query = state.messages[-1].content.lower()
     query_words = set(query.split())
@@ -121,6 +130,8 @@ def retrieve(state: RAGState) -> dict:
         scored.append((overlap, doc["title"]))
 
     scored.sort(key=lambda x: x[0], reverse=True)
+    # If no document has any keyword overlap, fall back to the first corpus
+    # entry as a last resort. This is a demo simplification only.
     top_titles = [title for _, title in scored[:5] if _ > 0] or [scored[0][1]]
 
     return {"retrieved_titles": top_titles}
@@ -128,8 +139,6 @@ def retrieve(state: RAGState) -> dict:
 
 def generate(state: RAGState) -> dict:
     """Call the LLM to produce a grounded answer from the retrieved context."""
-    llm = init_chat_model("gpt-4.1-mini", model_provider="openai")
-
     context = "\n".join(f"- {t}" for t in state.retrieved_titles)
     user_query = state.messages[-1].content
 
@@ -143,7 +152,7 @@ def generate(state: RAGState) -> dict:
         HumanMessage(content=user_query),
     ]
 
-    response = llm.invoke(messages)
+    response = _LLM.invoke(messages)
     return {"answer": response.content}
 
 
