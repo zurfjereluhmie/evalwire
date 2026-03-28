@@ -1,7 +1,7 @@
 """task.py — RAG pipeline experiment task for evalwire.
 
 The task isolates the ``retrieve`` node of the RAG graph using
-``evalwire.langgraph.build_subgraph``, invokes it with the user query, and
+``evalwire.langgraph.invoke_node``, invokes it with the user query, and
 returns the list of retrieved document titles.
 
 Phoenix passes each dataset row as a ``phoenix.experiments.types.Example``
@@ -24,14 +24,7 @@ if str(_demo_root) not in sys.path:
 
 from agent.graph import RAGState, retrieve  # noqa: E402
 
-from evalwire.langgraph import build_subgraph  # noqa: E402
-
-# Build a single-node subgraph that only runs ``retrieve``.
-_subgraph = build_subgraph(
-    nodes=[("retrieve", retrieve)],
-    state_cls=RAGState,
-    name="retrieve_only",
-)
+from evalwire.langgraph import invoke_node  # noqa: E402
 
 
 async def task(example) -> list[str]:
@@ -48,10 +41,5 @@ async def task(example) -> list[str]:
     list[str]
         The titles of the documents retrieved for the query.
     """
-    query: str = example.input["user_query"]
-
-    from langchain_core.messages import HumanMessage
-
-    state = RAGState(messages=[HumanMessage(content=query)])
-    result = await _subgraph.ainvoke(state)
+    result = await invoke_node(retrieve, example.input["user_query"], RAGState)
     return result["retrieved_titles"]
