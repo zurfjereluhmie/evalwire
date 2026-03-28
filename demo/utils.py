@@ -30,7 +30,7 @@ def make_phoenix_client() -> Any:
     base_url = os.environ.get("PHOENIX_BASE_URL", "http://localhost:6006")
     api_key = os.environ.get("PHOENIX_API_KEY")
 
-    client_kwargs: dict[str, Any] = {"endpoint": base_url}
+    client_kwargs: dict[str, Any] = {"base_url": base_url}
     if api_key:
         client_kwargs["api_key"] = api_key
 
