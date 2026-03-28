@@ -62,18 +62,13 @@ def _make_dataset_mock(name: str, id_: str = "ds-1") -> MagicMock:
 
 @pytest.fixture()
 def mock_phoenix_client() -> MagicMock:
-    """A MagicMock that mimics the shape of ``phoenix.client.Client``."""
+    """A MagicMock that mimics the flat API of ``phoenix.Client`` (>=13)."""
     client = MagicMock()
 
-    # datasets namespace
     created_ds = _make_dataset_mock("es_search")
-    client.datasets.create_dataset.return_value = created_ds
-    client.datasets.get_dataset.return_value = created_ds
-    client.datasets.delete_dataset.return_value = None
-    client.datasets.add_examples.return_value = None
-
-    # experiments namespace
-    client.experiments.run_experiment.return_value = MagicMock(name="exp_result")
+    client.upload_dataset.return_value = created_ds
+    client.get_dataset.return_value = created_ds
+    client.append_to_dataset.return_value = created_ds
 
     return client
 

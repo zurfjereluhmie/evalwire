@@ -135,53 +135,40 @@ class DatasetUploader:
         df: pd.DataFrame,
         on_exist: Literal["skip", "overwrite", "append"],
     ) -> Any:
-        client_datasets = self.client.datasets
-
-        if on_exist == "overwrite":
-            try:
-                existing = client_datasets.get_dataset(name=name)
-                client_datasets.delete_dataset(id=existing.id)
-                logger.debug("Deleted existing dataset %r for overwrite.", name)
-            except Exception:
-                pass  # dataset does not exist yet — proceed with creation
+        # phoenix.Client (≥13) exposes a flat API:
+        #   client.upload_dataset(...)   — create / replace
+        #   client.append_to_dataset(...)— add rows to existing
+        #   client.get_dataset(name=...) — fetch existing
 
         if on_exist == "append":
             try:
-                existing = client_datasets.get_dataset(name=name)
-                examples = self._df_to_examples(df)
-                client_datasets.add_examples(dataset_id=existing.id, examples=examples)
+                self.client.get_dataset(name=name)
+                dataset = self.client.append_to_dataset(
+                    dataset_name=name,
+                    dataframe=df,
+                    input_keys=self.input_keys,
+                    output_keys=self.output_keys,
+                )
                 logger.debug("Appended %d examples to dataset %r.", len(df), name)
-                return existing
+                return dataset
             except Exception:
                 logger.debug(
                     "Dataset %r not found for append; creating it instead.", name
                 )
 
-        # Default: create (handles skip via Phoenix action or conflict catch)
-        try:
-            dataset = client_datasets.create_dataset(
-                dataframe=df,
-                name=name,
-                input_keys=self.input_keys,
-                output_keys=self.output_keys,
-                **({"action": "skip"} if on_exist == "skip" else {}),
-            )
-        except Exception as exc:
-            if on_exist == "skip":
-                logger.info(
-                    "Dataset %r already exists, skipping (caught: %s).", name, exc
-                )
-                dataset = client_datasets.get_dataset(name=name)
-            else:
-                raise
+        if on_exist == "skip":
+            try:
+                existing = self.client.get_dataset(name=name)
+                logger.info("Dataset %r already exists, skipping.", name)
+                return existing
+            except Exception:
+                pass  # does not exist yet — fall through to upload
 
+        # "overwrite" always re-uploads; "skip" falls here when dataset is new.
+        dataset = self.client.upload_dataset(
+            dataset_name=name,
+            dataframe=df,
+            input_keys=self.input_keys,
+            output_keys=self.output_keys,
+        )
         return dataset
-
-    def _df_to_examples(self, df: pd.DataFrame) -> list[dict]:
-        """Convert DataFrame rows to the list-of-dicts format for add_examples."""
-        examples = []
-        for _, row in df.iterrows():
-            inp = {k: row[k] for k in self.input_keys if k in row}
-            out = {k: row[k] for k in self.output_keys if k in row}
-            examples.append({"input": inp, "output": out})
-        return examples

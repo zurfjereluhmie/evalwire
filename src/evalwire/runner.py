@@ -96,7 +96,11 @@ class ExperimentRunner:
 
             logger.info("Running experiment %r…", experiment_name)
             try:
-                result = self.client.experiments.run_experiment(
+                from phoenix.experiments import (  # type: ignore[import-untyped]
+                    run_experiment,
+                )
+
+                result = run_experiment(
                     dataset=dataset,
                     task=task,
                     evaluators=evaluators,
@@ -193,7 +197,7 @@ class ExperimentRunner:
 
     def _get_dataset(self, name: str) -> Any | None:
         try:
-            return self.client.datasets.get_dataset(name=name)
+            return self.client.get_dataset(name=name)
         except Exception as exc:
             logger.warning(
                 "No Phoenix dataset named %r; skipping experiment (%s).", name, exc

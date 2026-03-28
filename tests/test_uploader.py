@@ -5,8 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock
 
-import pandas as pd
-
 from evalwire.uploader import DatasetUploader
 
 # ---------------------------------------------------------------------------
@@ -101,22 +99,21 @@ class TestUploadSkip:
         result = uploader.upload(on_exist="skip")
         assert set(result.keys()) == {"es_search", "source_router"}
 
-    def test_calls_create_dataset_with_action_skip(
+    def test_skips_when_dataset_already_exists(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
+        # get_dataset succeeds → upload_dataset must NOT be called
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="skip")
-        for c in mock_phoenix_client.datasets.create_dataset.call_args_list:
-            assert c.kwargs.get("action") == "skip" or c.args  # action passed as kwarg
+        mock_phoenix_client.upload_dataset.assert_not_called()
 
-    def test_falls_back_to_get_dataset_on_conflict(
+    def test_uploads_when_dataset_does_not_exist(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        # Simulate conflict: create_dataset raises, get_dataset returns the existing one
-        mock_phoenix_client.datasets.create_dataset.side_effect = Exception("conflict")
+        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         result = uploader.upload(on_exist="skip")
-        assert mock_phoenix_client.datasets.get_dataset.called
+        assert mock_phoenix_client.upload_dataset.called
         assert len(result) == 2
 
 
@@ -126,21 +123,20 @@ class TestUploadSkip:
 
 
 class TestUploadOverwrite:
-    def test_deletes_existing_before_create(
+    def test_always_calls_upload_dataset(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="overwrite")
-        assert mock_phoenix_client.datasets.delete_dataset.called
+        assert mock_phoenix_client.upload_dataset.called
 
-    def test_delete_failure_still_creates(
+    def test_overwrite_when_dataset_missing_still_uploads(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         result = uploader.upload(on_exist="overwrite")
-        # create_dataset should still be called even if delete failed
-        assert mock_phoenix_client.datasets.create_dataset.called
+        assert mock_phoenix_client.upload_dataset.called
         assert len(result) == 2
 
 
@@ -150,52 +146,21 @@ class TestUploadOverwrite:
 
 
 class TestUploadAppend:
-    def test_calls_add_examples_when_dataset_exists(
+    def test_calls_append_to_dataset_when_dataset_exists(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="append")
-        assert mock_phoenix_client.datasets.add_examples.called
+        assert mock_phoenix_client.append_to_dataset.called
 
-    def test_falls_back_to_create_when_dataset_missing(
+    def test_falls_back_to_upload_when_dataset_missing(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         result = uploader.upload(on_exist="append")
-        assert mock_phoenix_client.datasets.create_dataset.called
+        assert mock_phoenix_client.upload_dataset.called
         assert len(result) == 2
-
-
-# ---------------------------------------------------------------------------
-# _df_to_examples
-# ---------------------------------------------------------------------------
-
-
-class TestDfToExamples:
-    def test_returns_list_of_dicts(self, sample_csv: Path):
-        uploader = _make_uploader(sample_csv, MagicMock())
-        df = pd.DataFrame(
-            {
-                "user_query": ["q1", "q2"],
-                "expected_output": ["a", "b"],
-                "tags": ["t", "t"],
-            }
-        )
-        examples = uploader._df_to_examples(df)
-        assert len(examples) == 2
-        assert examples[0]["input"] == {"user_query": "q1"}
-        assert examples[0]["output"] == {"expected_output": "a"}
-
-    def test_missing_key_skipped(self, sample_csv: Path):
-        uploader = _make_uploader(
-            sample_csv, MagicMock(), input_keys=["user_query", "nonexistent"]
-        )
-        df = pd.DataFrame(
-            {"user_query": ["q1"], "expected_output": ["a"], "tags": ["t"]}
-        )
-        examples = uploader._df_to_examples(df)
-        assert "nonexistent" not in examples[0]["input"]
 
 
 # ---------------------------------------------------------------------------
@@ -215,6 +180,7 @@ class TestCustomConfig:
             tag_column="group",
             delimiter=";",
         )
+        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
         result = uploader.upload(on_exist="skip")
         assert "g1" in result
         assert "g2" in result
@@ -227,5 +193,6 @@ class TestCustomConfig:
             phoenix_client=mock_phoenix_client,
             tag_column="category",
         )
+        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
         result = uploader.upload(on_exist="skip")
         assert "cat1" in result
