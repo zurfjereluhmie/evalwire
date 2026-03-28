@@ -6,6 +6,7 @@ import importlib
 import importlib.util
 import logging
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -78,11 +79,10 @@ class ExperimentRunner:
         results: list[Any] = []
         failed = False
 
-        for exp_name, task, evaluators in experiments:
+        def _run_one(exp_name: str, task: Any, evaluators: list[Any]) -> Any:
             dataset = self._get_dataset(exp_name)
             if dataset is None:
-                failed = True
-                continue
+                return None
 
             timestamp = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
             experiment_name = f"{experiment_name_prefix}_{exp_name}_{timestamp}"
@@ -91,19 +91,31 @@ class ExperimentRunner:
                 exp_metadata.update(metadata)
 
             logger.info("Running experiment %r…", experiment_name)
-            try:
-                result = self.client.experiments.run_experiment(
-                    dataset=dataset,
-                    task=task,
-                    evaluators=evaluators,
-                    experiment_name=experiment_name,
-                    experiment_metadata=exp_metadata,
-                    dry_run=self.dry_run,
-                )
-                results.append(result)
-            except Exception as exc:
-                logger.error("Experiment %r failed: %s", experiment_name, exc)
-                failed = True
+            return self.client.experiments.run_experiment(
+                dataset=dataset,
+                task=task,
+                evaluators=evaluators,
+                experiment_name=experiment_name,
+                experiment_metadata=exp_metadata,
+                dry_run=self.dry_run,
+            )
+
+        with ThreadPoolExecutor(max_workers=self.concurrency) as executor:
+            futures = {
+                executor.submit(_run_one, exp_name, task, evaluators): exp_name
+                for exp_name, task, evaluators in experiments
+            }
+            for future in as_completed(futures):
+                exp_name = futures[future]
+                try:
+                    result = future.result()
+                    if result is None:
+                        failed = True
+                    else:
+                        results.append(result)
+                except Exception as exc:
+                    logger.error("Experiment %r failed: %s", exp_name, exc)
+                    failed = True
 
         if failed:
             raise SystemExit(1)
@@ -137,6 +149,11 @@ class ExperimentRunner:
             if not task_file.exists():
                 logger.debug("Skipping %r — no task.py found.", exp_name)
                 continue
+
+            init_file = subdir / "__init__.py"
+            if not init_file.exists():
+                init_file.touch()
+                logger.debug("Created missing __init__.py in %r.", exp_name)
 
             task = self._load_attribute(task_file, "task")
             if task is None:

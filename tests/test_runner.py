@@ -73,6 +73,32 @@ class TestDiscover:
         found = runner._discover(None)
         assert found == []
 
+    def test_discover_creates_missing_init_py(
+        self, tmp_path: Path, mock_phoenix_client: MagicMock
+    ):
+        base = tmp_path / "experiments"
+        base.mkdir()
+        exp = base / "my_exp"
+        exp.mkdir()
+        (exp / "task.py").write_text("async def task(example): return 'x'\n")
+        assert not (exp / "__init__.py").exists()
+        runner = _make_runner(base, mock_phoenix_client)
+        runner._discover(None)
+        assert (exp / "__init__.py").exists()
+
+    def test_discover_does_not_overwrite_existing_init_py(
+        self, tmp_path: Path, mock_phoenix_client: MagicMock
+    ):
+        base = tmp_path / "experiments"
+        base.mkdir()
+        exp = base / "my_exp"
+        exp.mkdir()
+        (exp / "task.py").write_text("async def task(example): return 'x'\n")
+        (exp / "__init__.py").write_text("# existing\n")
+        runner = _make_runner(base, mock_phoenix_client)
+        runner._discover(None)
+        assert (exp / "__init__.py").read_text() == "# existing\n"
+
     def test_evaluator_without_matching_callable_is_skipped(
         self, tmp_path: Path, mock_phoenix_client: MagicMock
     ):
