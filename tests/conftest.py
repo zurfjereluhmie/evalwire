@@ -7,10 +7,6 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-# ---------------------------------------------------------------------------
-# CSV / DataFrame helpers
-# ---------------------------------------------------------------------------
-
 
 @pytest.fixture()
 def sample_csv(tmp_path: Path) -> Path:
@@ -46,11 +42,6 @@ def sample_df() -> pd.DataFrame:
     )
 
 
-# ---------------------------------------------------------------------------
-# Phoenix client mock
-# ---------------------------------------------------------------------------
-
-
 def _make_dataset_mock(name: str, id_: str = "ds-1") -> MagicMock:
     ds = MagicMock()
     ds.id = id_
@@ -69,11 +60,6 @@ def mock_phoenix_client() -> MagicMock:
     client.append_to_dataset.return_value = created_ds
 
     return client
-
-
-# ---------------------------------------------------------------------------
-# Experiments directory helpers
-# ---------------------------------------------------------------------------
 
 
 def _write_experiment(

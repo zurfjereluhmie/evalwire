@@ -21,10 +21,6 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
-# ---------------------------------------------------------------------------
-# In-memory corpus — (title, body) pairs, one per topic bucket
-# ---------------------------------------------------------------------------
-
 CORPUS: list[dict] = [
     # sports
     {
@@ -97,11 +93,6 @@ CORPUS: list[dict] = [
 ]
 
 
-# ---------------------------------------------------------------------------
-# State schema
-# ---------------------------------------------------------------------------
-
-
 @dataclass
 class RAGState:
     """Shared state for the RAG pipeline."""
@@ -111,11 +102,6 @@ class RAGState:
     retrieved_titles: list[str] = field(default_factory=list)
     # Final generated answer (populated by the generate node)
     answer: str = ""
-
-
-# ---------------------------------------------------------------------------
-# Node callables
-# ---------------------------------------------------------------------------
 
 
 def retrieve(state: RAGState) -> dict:
@@ -161,11 +147,6 @@ def generate(state: RAGState) -> dict:
     return {"answer": response.content}
 
 
-# ---------------------------------------------------------------------------
-# Graph factory
-# ---------------------------------------------------------------------------
-
-
 def build_rag_graph() -> CompiledStateGraph:
     """Compile and return the RAG StateGraph."""
     graph = StateGraph(RAGState)
@@ -176,10 +157,6 @@ def build_rag_graph() -> CompiledStateGraph:
     graph.add_edge("generate", END)
     return graph.compile()
 
-
-# ---------------------------------------------------------------------------
-# Quick smoke-test (run directly: python -m demo.agent.graph)
-# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     import asyncio
