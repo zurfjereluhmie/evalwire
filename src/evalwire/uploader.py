@@ -1,0 +1,188 @@
+"""DatasetUploader — uploads a CSV testset to Arize Phoenix as named datasets."""
+
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+from typing import Any, Literal
+
+import pandas as pd
+
+logger = logging.getLogger(__name__)
+
+
+class DatasetUploader:
+    """Upload a human-curated CSV testset to Arize Phoenix.
+
+    Each unique value found in ``tag_column`` becomes a separate Phoenix
+    dataset. A row tagged with multiple pipe-delimited values is added to
+    each corresponding dataset.
+
+    Parameters
+    ----------
+    csv_path:
+        Path to the CSV file.
+    phoenix_client:
+        An initialised ``phoenix.client.Client`` instance.
+    input_keys:
+        Column names that form the ``input`` of each dataset example.
+    output_keys:
+        Column names that form the ``output`` of each dataset example.
+    tag_column:
+        Column used to split rows into separate datasets.
+    delimiter:
+        Delimiter used to split multi-value cells (tags and output columns).
+    """
+
+    def __init__(
+        self,
+        csv_path: Path | str,
+        phoenix_client: Any,
+        input_keys: list[str] = ("user_query",),
+        output_keys: list[str] = ("expected_output",),
+        tag_column: str = "tags",
+        delimiter: str = "|",
+    ) -> None:
+        self.csv_path = Path(csv_path)
+        self.client = phoenix_client
+        self.input_keys = list(input_keys)
+        self.output_keys = list(output_keys)
+        self.tag_column = tag_column
+        self.delimiter = delimiter
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
+    def upload(
+        self,
+        on_exist: Literal["skip", "overwrite", "append"] = "skip",
+    ) -> dict[str, Any]:
+        """Upload one Phoenix dataset per unique tag value found in the CSV.
+
+        Parameters
+        ----------
+        on_exist:
+            How to handle a dataset that already exists in Phoenix:
+            - ``"skip"``      — leave the existing dataset untouched (default).
+            - ``"overwrite"`` — delete and re-create.
+            - ``"append"``    — add new examples to the existing dataset.
+
+        Returns
+        -------
+        dict[str, Any]
+            Mapping of tag name → created/updated dataset object.
+        """
+        df = self._load_csv()
+        groups = self._group_by_tag(df)
+        results: dict[str, Any] = {}
+
+        for tag, group_df in groups.items():
+            logger.info("Uploading dataset %r (%d rows)…", tag, len(group_df))
+            dataset = self._upload_one(tag, group_df, on_exist)
+            results[tag] = dataset
+
+        return results
+
+    # ------------------------------------------------------------------
+    # Private helpers
+    # ------------------------------------------------------------------
+
+    def _load_csv(self) -> pd.DataFrame:
+        df = pd.read_csv(self.csv_path)
+        # Split any column whose values contain the delimiter character.
+        for col in df.columns:
+            if df[col].dtype == object:
+                mask = (
+                    df[col]
+                    .astype(str)
+                    .str.contains(self.delimiter, regex=False, na=False)
+                )
+                if mask.any() or col == self.tag_column:
+                    df[col] = (
+                        df[col]
+                        .astype(str)
+                        .apply(
+                            lambda v: (
+                                [s.strip() for s in v.split(self.delimiter)]
+                                if self.delimiter in v
+                                else v
+                            )
+                        )
+                    )
+        return df
+
+    def _group_by_tag(self, df: pd.DataFrame) -> dict[str, pd.DataFrame]:
+        """Return one DataFrame per unique tag value."""
+        groups: dict[str, list[int]] = {}
+        for idx, row in df.iterrows():
+            tags_cell = row[self.tag_column]
+            tags: list[str] = (
+                tags_cell if isinstance(tags_cell, list) else [str(tags_cell)]
+            )
+            for tag in tags:
+                tag = tag.strip()
+                if tag:
+                    groups.setdefault(tag, []).append(idx)
+
+        return {
+            tag: df.loc[indices].reset_index(drop=True)
+            for tag, indices in groups.items()
+        }
+
+    def _upload_one(
+        self,
+        name: str,
+        df: pd.DataFrame,
+        on_exist: Literal["skip", "overwrite", "append"],
+    ) -> Any:
+        client_datasets = self.client.datasets
+
+        if on_exist == "overwrite":
+            try:
+                existing = client_datasets.get_dataset(name=name)
+                client_datasets.delete_dataset(id=existing.id)
+                logger.debug("Deleted existing dataset %r for overwrite.", name)
+            except Exception:
+                pass  # dataset does not exist yet — proceed with creation
+
+        if on_exist == "append":
+            try:
+                existing = client_datasets.get_dataset(name=name)
+                examples = self._df_to_examples(df)
+                client_datasets.add_examples(dataset_id=existing.id, examples=examples)
+                logger.debug("Appended %d examples to dataset %r.", len(df), name)
+                return existing
+            except Exception:
+                logger.debug(
+                    "Dataset %r not found for append; creating it instead.", name
+                )
+
+        # Default: create (handles skip via Phoenix action or conflict catch)
+        try:
+            dataset = client_datasets.create_dataset(
+                dataframe=df,
+                name=name,
+                input_keys=self.input_keys,
+                output_keys=self.output_keys,
+                **({"action": "skip"} if on_exist == "skip" else {}),
+            )
+        except Exception as exc:
+            if on_exist == "skip":
+                logger.info(
+                    "Dataset %r already exists, skipping (caught: %s).", name, exc
+                )
+                dataset = client_datasets.get_dataset(name=name)
+            else:
+                raise
+
+        return dataset
+
+    def _df_to_examples(self, df: pd.DataFrame) -> list[dict]:
+        """Convert DataFrame rows to the list-of-dicts format for add_examples."""
+        examples = []
+        for _, row in df.iterrows():
+            inp = {k: row[k] for k in self.input_keys if k in row}
+            out = {k: row[k] for k in self.output_keys if k in row}
+            examples.append({"input": inp, "output": out})
+        return examples
