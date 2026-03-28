@@ -46,4 +46,5 @@ demo = [
     "langgraph>=1.0,<2",
     "openai>=1.0,<2",
     "openinference-instrumentation-langchain>=0.1,<0.2",
+    "python-dotenv>=1.0",
 ]

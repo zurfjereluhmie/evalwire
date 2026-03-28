@@ -9,6 +9,9 @@ Environment variables
     OPENAI_API_KEY     Required — passed through to the LangChain LLM call.
     PHOENIX_BASE_URL   Base URL of the Phoenix instance (default: http://localhost:6006)
     PHOENIX_API_KEY    API key if Phoenix is running in authenticated mode (optional)
+
+A ``.env`` file in the demo directory (or any parent) is loaded automatically
+via ``python-dotenv`` before the environment is read.
 """
 
 from __future__ import annotations
@@ -19,10 +22,15 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
 _DEMO_DIR = Path(__file__).resolve().parent
 _EXPERIMENTS_DIR = _DEMO_DIR / "experiments"
+
+# Load .env from the demo directory (falls back to any parent .env automatically).
+load_dotenv(_DEMO_DIR / ".env")
 
 
 def main() -> None:

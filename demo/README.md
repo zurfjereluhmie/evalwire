@@ -43,11 +43,7 @@ cp demo/.env.example demo/.env
 # Edit demo/.env and set OPENAI_API_KEY to your key.
 ```
 
-Then export them into the current shell:
-
-```bash
-export $(grep -v '^#' demo/.env | xargs)
-```
+`run.py` loads `demo/.env` automatically via `python-dotenv` — no manual `export` needed.
 
 ## Step 4 — Upload the testset
 
