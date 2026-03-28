@@ -9,7 +9,10 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from phoenix.client import Client
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +39,7 @@ class ExperimentRunner:
     def __init__(
         self,
         experiments_dir: Path | str,
-        phoenix_client: Any,
+        phoenix_client: Client,
         *,
         concurrency: int = 1,
         dry_run: bool | int = False,
@@ -217,7 +220,7 @@ class ExperimentRunner:
 
     def _get_dataset(self, name: str) -> Any | None:
         try:
-            return self.client.datasets.get_dataset(name=name)
+            return self.client.datasets.get_dataset(dataset=name)
         except Exception as exc:
             logger.warning(
                 "No Phoenix dataset named %r; skipping experiment (%s).", name, exc

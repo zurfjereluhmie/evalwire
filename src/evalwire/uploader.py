@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import pandas as pd
+
+if TYPE_CHECKING:
+    from phoenix.client import Client
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +40,7 @@ class DatasetUploader:
     def __init__(
         self,
         csv_path: Path | str,
-        phoenix_client: Any,
+        phoenix_client: Client,
         input_keys: list[str] = ["user_query"],  # noqa: B006
         output_keys: list[str] = ["expected_output"],  # noqa: B006
         tag_column: str = "tags",
@@ -124,7 +127,7 @@ class DatasetUploader:
     ) -> Any:
         if on_exist == "skip":
             try:
-                existing = self.client.datasets.get_dataset(name=name)
+                existing = self.client.datasets.get_dataset(dataset=name)
                 logger.info("Dataset %r already exists, skipping.", name)
                 return existing
             except Exception:
@@ -142,18 +145,9 @@ class DatasetUploader:
             )
 
         elif on_exist == "overwrite":
-            try:
-                existing = self.client.datasets.get_dataset(name=name)
-                self.client.datasets.delete_dataset(id=existing.id)
-                logger.debug("Deleted existing dataset %r for overwrite.", name)
-            except Exception:
-                logger.warning(
-                    "Could not fetch/delete dataset %r before overwrite; "
-                    "proceeding with create (if this is not a 'not found' error, "
-                    "check your Phoenix endpoint and credentials).",
-                    name,
-                    exc_info=True,
-                )
+            # Phoenix datasets are versioned; create_dataset with an existing name
+            # adds a new version rather than replacing the dataset object, so a
+            # delete step is not needed (and no delete API exists in Phoenix >=13).
             return self.client.datasets.create_dataset(
                 dataframe=df,
                 name=name,
@@ -163,9 +157,8 @@ class DatasetUploader:
 
         else:  # "append"
             try:
-                existing = self.client.datasets.get_dataset(name=name)
-                dataset = self.client.datasets.add_examples(
-                    dataset_id=existing.id,
+                dataset = self.client.datasets.add_examples_to_dataset(
+                    dataset=name,
                     dataframe=df,
                     input_keys=self.input_keys,
                     output_keys=self.output_keys,
@@ -174,7 +167,7 @@ class DatasetUploader:
                 return dataset
             except Exception:
                 logger.warning(
-                    "Could not fetch dataset %r for append; creating it instead "
+                    "Could not append to dataset %r; creating it instead "
                     "(if this is not a 'not found' error, check your Phoenix "
                     "endpoint and credentials).",
                     name,

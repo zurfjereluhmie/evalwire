@@ -36,8 +36,7 @@ def mock_phoenix_client() -> MagicMock:
     created_ds = _make_dataset_mock("es_search")
     client.datasets.create_dataset.return_value = created_ds
     client.datasets.get_dataset.return_value = created_ds
-    client.datasets.delete_dataset.return_value = None
-    client.datasets.add_examples.return_value = created_ds
+    client.datasets.add_examples_to_dataset.return_value = created_ds
 
     return client
 

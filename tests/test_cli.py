@@ -18,8 +18,7 @@ def _mock_client() -> MagicMock:
     ds.id = "ds-1"
     client.datasets.create_dataset.return_value = ds
     client.datasets.get_dataset.return_value = ds
-    client.datasets.delete_dataset.return_value = None
-    client.datasets.add_examples.return_value = ds
+    client.datasets.add_examples_to_dataset.return_value = ds
     return client
 
 
@@ -76,7 +75,7 @@ class TestUploadCommand:
         csv_file = tmp_path / "custom.csv"
         csv_file.write_text("q,ans,grp\nq1,a1,g1\n")
         client = _mock_client()
-        client.get_dataset.side_effect = Exception("not found")
+        client.datasets.get_dataset.side_effect = Exception("not found")
         with patch("evalwire.cli._make_client", return_value=client):
             result = _runner().invoke(
                 main,

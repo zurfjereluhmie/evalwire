@@ -129,7 +129,7 @@ class TestInvokeNodeAsync:
 
         pytest.importorskip("langchain_core", reason="langchain-core not installed")
 
-        from langchain_core.messages import (  # ty: ignore[unresolved-import]
+        from langchain_core.messages import (
             HumanMessage,
         )
 
