@@ -28,8 +28,13 @@ evalwire = "evalwire.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/evalwire"]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [dependency-groups]
 dev = [
     "pre-commit>=4.5.1",
+    "pytest>=8.0",
+    "pytest-mock>=3.14",
     "ruff>=0.15.8",
 ]
