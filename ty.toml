@@ -1,0 +1,15 @@
+[environment]
+# The demo/ directory requires optional extras (langchain, langgraph, dotenv)
+# that are not installed in the dev environment. Exclude it from type checking.
+python-platform = "linux"
+
+[src]
+exclude = ["demo"]
+
+[[overrides]]
+# evalwire.langgraph imports langgraph and langchain-core lazily (optional extras).
+# These are not installed in the dev environment; suppress the resulting diagnostics.
+include = ["src/evalwire/langgraph.py"]
+
+[overrides.rules]
+unresolved-import = "ignore"
