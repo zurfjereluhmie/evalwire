@@ -5,25 +5,15 @@ from unittest.mock import MagicMock
 
 from evalwire.uploader import DatasetUploader
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 
 def _make_uploader(csv_path: Path, client: MagicMock, **kwargs) -> DatasetUploader:
     return DatasetUploader(csv_path=csv_path, phoenix_client=client, **kwargs)
-
-
-# ---------------------------------------------------------------------------
-# _load_csv
-# ---------------------------------------------------------------------------
 
 
 class TestLoadCsv:
     def test_splits_pipe_delimited_expected_output(self, sample_csv: Path):
         uploader = _make_uploader(sample_csv, MagicMock())
         df = uploader._load_csv()
-        # The first row has "url-a | url-b" which should become a list
         first_row_output = df.iloc[0]["expected_output"]
         assert isinstance(first_row_output, list)
         assert first_row_output == ["url-a", "url-b"]
@@ -46,11 +36,6 @@ class TestLoadCsv:
         uploader = _make_uploader(sample_csv, MagicMock())
         df = uploader._load_csv()
         assert len(df) == 3
-
-
-# ---------------------------------------------------------------------------
-# _group_by_tag
-# ---------------------------------------------------------------------------
 
 
 class TestGroupByTag:
@@ -84,11 +69,6 @@ class TestGroupByTag:
         assert len(groups["source_router"]) == 2
 
 
-# ---------------------------------------------------------------------------
-# upload — on_exist="skip"
-# ---------------------------------------------------------------------------
-
-
 class TestUploadSkip:
     def test_creates_dataset_for_each_tag(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
@@ -100,7 +80,6 @@ class TestUploadSkip:
     def test_skips_when_dataset_already_exists(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        # get_dataset succeeds → upload_dataset must NOT be called
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="skip")
         mock_phoenix_client.upload_dataset.assert_not_called()
@@ -113,11 +92,6 @@ class TestUploadSkip:
         result = uploader.upload(on_exist="skip")
         assert mock_phoenix_client.upload_dataset.called
         assert len(result) == 2
-
-
-# ---------------------------------------------------------------------------
-# upload — on_exist="overwrite"
-# ---------------------------------------------------------------------------
 
 
 class TestUploadOverwrite:
@@ -138,11 +112,6 @@ class TestUploadOverwrite:
         assert len(result) == 2
 
 
-# ---------------------------------------------------------------------------
-# upload — on_exist="append"
-# ---------------------------------------------------------------------------
-
-
 class TestUploadAppend:
     def test_calls_append_to_dataset_when_dataset_exists(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
@@ -159,11 +128,6 @@ class TestUploadAppend:
         result = uploader.upload(on_exist="append")
         assert mock_phoenix_client.upload_dataset.called
         assert len(result) == 2
-
-
-# ---------------------------------------------------------------------------
-# Custom column names / delimiter
-# ---------------------------------------------------------------------------
 
 
 class TestCustomConfig:

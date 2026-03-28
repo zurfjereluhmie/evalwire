@@ -7,10 +7,6 @@ from click.testing import CliRunner
 
 from evalwire.cli import main
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 _PATCH_RUN_EXP = "phoenix.experiments.run_experiment"
 
 
@@ -26,11 +22,6 @@ def _mock_client() -> MagicMock:
     client.get_dataset.return_value = ds
     client.append_to_dataset.return_value = ds
     return client
-
-
-# ---------------------------------------------------------------------------
-# evalwire upload
-# ---------------------------------------------------------------------------
 
 
 class TestUploadCommand:
@@ -112,11 +103,6 @@ class TestUploadCommand:
         with patch("evalwire.cli._make_client", return_value=client):
             result = _runner().invoke(main, ["upload", "--csv", str(sample_csv)])
         assert result.exit_code == 2
-
-
-# ---------------------------------------------------------------------------
-# evalwire run
-# ---------------------------------------------------------------------------
 
 
 class TestRunCommand:

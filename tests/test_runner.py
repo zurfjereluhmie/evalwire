@@ -7,10 +7,6 @@ import pytest
 
 from evalwire.runner import ExperimentRunner
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 _PATCH_TARGET = "phoenix.experiments.run_experiment"
 
 
@@ -22,11 +18,6 @@ def _make_runner(
         phoenix_client=client,
         **kwargs,
     )
-
-
-# ---------------------------------------------------------------------------
-# _discover
-# ---------------------------------------------------------------------------
 
 
 class TestDiscover:
@@ -44,7 +35,7 @@ class TestDiscover:
     ):
         base = tmp_path / "experiments"
         base.mkdir()
-        (base / "no_task").mkdir()  # no task.py
+        (base / "no_task").mkdir()
         runner = _make_runner(base, mock_phoenix_client)
         found = runner._discover(None)
         assert found == []
@@ -92,18 +83,12 @@ class TestDiscover:
         exp = base / "partial"
         exp.mkdir()
         (exp / "task.py").write_text("async def task(example): return 'x'\n")
-        # Evaluator file name is "my_eval.py" but exports "wrong_name"
         (exp / "my_eval.py").write_text("def wrong_name(o, e): return 1.0\n")
         runner = _make_runner(base, mock_phoenix_client)
         found = runner._discover(None)
         assert len(found) == 1
         _, _, evaluators = found[0]
         assert evaluators == []
-
-
-# ---------------------------------------------------------------------------
-# _load_attribute
-# ---------------------------------------------------------------------------
 
 
 class TestLoadAttribute:
@@ -133,11 +118,6 @@ class TestLoadAttribute:
         runner = _make_runner(tmp_path, mock_phoenix_client)
         result = runner._load_attribute(py_file, "anything")
         assert result is None
-
-
-# ---------------------------------------------------------------------------
-# run
-# ---------------------------------------------------------------------------
 
 
 class TestRun:

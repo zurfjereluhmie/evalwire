@@ -1,7 +1,5 @@
 """evalwire CLI — ``evalwire upload`` and ``evalwire run`` commands."""
 
-from __future__ import annotations
-
 import sys
 from typing import Literal, cast
 
@@ -13,10 +11,6 @@ from evalwire.config import (
     load_config,
 )
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 
 def _make_client():
     """Instantiate and return a Phoenix client."""
@@ -25,19 +19,9 @@ def _make_client():
     return Client()
 
 
-# ---------------------------------------------------------------------------
-# CLI group
-# ---------------------------------------------------------------------------
-
-
 @click.group()
 def main() -> None:
     """evalwire — systematic evaluation of LangGraph nodes with Arize Phoenix."""
-
-
-# ---------------------------------------------------------------------------
-# upload
-# ---------------------------------------------------------------------------
 
 
 @main.command("upload")
@@ -131,11 +115,6 @@ def upload_cmd(
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(2)
-
-
-# ---------------------------------------------------------------------------
-# run
-# ---------------------------------------------------------------------------
 
 
 @main.command("run")

@@ -11,10 +11,6 @@ from evalwire.config import (
     load_config,
 )
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 FULL_TOML = """\
 [dataset]
 csv_path      = "data/testset.csv"
@@ -32,11 +28,6 @@ prefix        = "ci"
 [phoenix]
 base_url      = "http://localhost:6006"
 """
-
-
-# ---------------------------------------------------------------------------
-# load_config
-# ---------------------------------------------------------------------------
 
 
 class TestLoadConfig:
@@ -68,7 +59,7 @@ class TestLoadConfig:
         cfg_file = tmp_path / "evalwire.toml"
         cfg_file.write_text("[dataset]\ncsv_path = 'cwd.csv'\n")
         monkeypatch.chdir(tmp_path)
-        result = load_config()  # no argument — should find ./evalwire.toml
+        result = load_config()
         assert result["dataset"]["csv_path"] == "cwd.csv"
 
     def test_empty_toml_returns_empty_dict(self, tmp_path: Path):
@@ -82,11 +73,6 @@ class TestLoadConfig:
         cfg_file.write_text("this is not valid toml ][[\n")
         with pytest.raises(Exception):
             load_config(cfg_file)
-
-
-# ---------------------------------------------------------------------------
-# Section accessors
-# ---------------------------------------------------------------------------
 
 
 class TestSectionAccessors:

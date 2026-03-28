@@ -45,10 +45,6 @@ class ExperimentRunner:
         self.concurrency = concurrency
         self.dry_run = dry_run
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     def run(
         self,
         names: list[str] | None = None,
@@ -96,9 +92,7 @@ class ExperimentRunner:
 
             logger.info("Running experiment %r…", experiment_name)
             try:
-                from phoenix.experiments import (
-                    run_experiment,
-                )
+                from phoenix.experiments import run_experiment
 
                 result = run_experiment(
                     dataset=dataset,
@@ -117,10 +111,6 @@ class ExperimentRunner:
             raise SystemExit(1)
 
         return results
-
-    # ------------------------------------------------------------------
-    # Discovery
-    # ------------------------------------------------------------------
 
     def _discover(self, names: list[str] | None) -> list[tuple[str, Any, list[Any]]]:
         """Return a list of ``(name, task, evaluators)`` tuples."""

@@ -4,10 +4,6 @@ import pytest
 
 from evalwire.evaluators import make_membership_evaluator, make_top_k_evaluator
 
-# ---------------------------------------------------------------------------
-# make_top_k_evaluator
-# ---------------------------------------------------------------------------
-
 
 class TestMakeTopKEvaluator:
     def test_returns_callable_named_top_k(self):
@@ -58,7 +54,6 @@ class TestMakeTopKEvaluator:
         assert score == pytest.approx(0.0)
 
     def test_expected_as_string_literal_eval(self):
-        # expected_output provided as a repr'd list string
         top_k = make_top_k_evaluator(K=10)
         score = top_k(["url-a"], {"expected_output": "['url-a']"})
         assert score == pytest.approx(1.0)
@@ -86,11 +81,6 @@ class TestMakeTopKEvaluator:
         top_k = make_top_k_evaluator(K=10)
         score = top_k(["a"], {})
         assert score == pytest.approx(0.0)
-
-
-# ---------------------------------------------------------------------------
-# make_membership_evaluator
-# ---------------------------------------------------------------------------
 
 
 class TestMakeMembershipEvaluator:

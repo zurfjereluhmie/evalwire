@@ -52,10 +52,6 @@ class DatasetUploader:
         self.tag_column = tag_column
         self.delimiter = delimiter
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     def upload(
         self,
         on_exist: Literal["skip", "overwrite", "append"] = "skip",
@@ -85,10 +81,6 @@ class DatasetUploader:
             results[tag] = dataset
 
         return results
-
-    # ------------------------------------------------------------------
-    # Private helpers
-    # ------------------------------------------------------------------
 
     def _load_csv(self) -> pd.DataFrame:
         df = pd.read_csv(self.csv_path)
