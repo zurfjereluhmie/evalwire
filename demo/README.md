@@ -31,9 +31,9 @@ Data is persisted in a named Docker volume (`phoenix_data`).
 From the repository root:
 
 ```bash
-# Install the evalwire package with the langgraph and openai extras, plus the
-# demo-specific LangChain/OpenInference packages.
-pip install -e '.[langgraph,openai]' -r demo/requirements.txt
+# Install the evalwire package together with all demo dependencies
+# (LangChain, LangGraph, OpenAI, OpenInference tracing).
+uv sync --group demo
 ```
 
 ## Step 3 — Configure environment variables
@@ -75,7 +75,6 @@ to view per-example scores and LLM traces.
 demo/
 ├── docker-compose.yml          # Phoenix service + persistent volume
 ├── .env.example                # Environment variable template
-├── requirements.txt            # Demo-specific Python dependencies
 ├── upload.py                   # Phase 1: upload testset to Phoenix
 ├── run.py                      # Phase 2: run experiments + emit traces
 ├── data/
