@@ -1,13 +1,18 @@
 """Observability setup for evalwire — registers Phoenix as the OTel provider."""
 
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from opentelemetry.sdk.trace import TracerProvider
 
 
 def setup_observability(
     instrumentors: list[Any] | None = None,
     *,
     auto_instrument: bool = True,
-) -> Any:
+) -> TracerProvider:
     """Register Phoenix as the OpenTelemetry tracer provider.
 
     Parameters

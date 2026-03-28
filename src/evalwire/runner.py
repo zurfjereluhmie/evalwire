@@ -51,7 +51,7 @@ class ExperimentRunner:
         names: list[str] | None = None,
         *,
         experiment_name_prefix: str = "eval",
-        metadata: dict | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> list[Any]:
         """Discover, load, and run experiments.
 
