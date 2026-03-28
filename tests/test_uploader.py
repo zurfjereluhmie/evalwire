@@ -82,15 +82,15 @@ class TestUploadSkip:
     ):
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="skip")
-        mock_phoenix_client.upload_dataset.assert_not_called()
+        mock_phoenix_client.datasets.create_dataset.assert_not_called()
 
     def test_uploads_when_dataset_does_not_exist(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         result = uploader.upload(on_exist="skip")
-        assert mock_phoenix_client.upload_dataset.called
+        assert mock_phoenix_client.datasets.create_dataset.called
         assert len(result) == 2
 
 
@@ -100,15 +100,22 @@ class TestUploadOverwrite:
     ):
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="overwrite")
-        assert mock_phoenix_client.upload_dataset.called
+        assert mock_phoenix_client.datasets.create_dataset.called
 
-    def test_overwrite_when_dataset_missing_still_uploads(
+    def test_overwrite_deletes_existing_before_creating(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
+        uploader = _make_uploader(sample_csv, mock_phoenix_client)
+        uploader.upload(on_exist="overwrite")
+        assert mock_phoenix_client.datasets.delete_dataset.called
+
+    def test_overwrite_when_dataset_missing_still_creates(
+        self, sample_csv: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         result = uploader.upload(on_exist="overwrite")
-        assert mock_phoenix_client.upload_dataset.called
+        assert mock_phoenix_client.datasets.create_dataset.called
         assert len(result) == 2
 
 
@@ -118,15 +125,15 @@ class TestUploadAppend:
     ):
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="append")
-        assert mock_phoenix_client.append_to_dataset.called
+        assert mock_phoenix_client.datasets.add_examples.called
 
-    def test_falls_back_to_upload_when_dataset_missing(
+    def test_falls_back_to_create_when_dataset_missing(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         result = uploader.upload(on_exist="append")
-        assert mock_phoenix_client.upload_dataset.called
+        assert mock_phoenix_client.datasets.create_dataset.called
         assert len(result) == 2
 
 
@@ -142,7 +149,7 @@ class TestCustomConfig:
             tag_column="group",
             delimiter=";",
         )
-        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
         result = uploader.upload(on_exist="skip")
         assert "g1" in result
         assert "g2" in result
@@ -155,6 +162,6 @@ class TestCustomConfig:
             phoenix_client=mock_phoenix_client,
             tag_column="category",
         )
-        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
         result = uploader.upload(on_exist="skip")
         assert "cat1" in result

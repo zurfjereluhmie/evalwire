@@ -18,9 +18,10 @@ def _mock_client() -> MagicMock:
     client = MagicMock()
     ds = MagicMock()
     ds.id = "ds-1"
-    client.upload_dataset.return_value = ds
-    client.get_dataset.return_value = ds
-    client.append_to_dataset.return_value = ds
+    client.datasets.create_dataset.return_value = ds
+    client.datasets.get_dataset.return_value = ds
+    client.datasets.delete_dataset.return_value = None
+    client.datasets.add_examples.return_value = ds
     return client
 
 
@@ -97,9 +98,9 @@ class TestUploadCommand:
 
     def test_upload_exits_2_on_unexpected_error(self, sample_csv: Path):
         client = _mock_client()
-        # Both get_dataset (skip check) and upload_dataset raise
-        client.get_dataset.side_effect = RuntimeError("also bad")
-        client.upload_dataset.side_effect = RuntimeError("unexpected")
+        # Both get_dataset (skip check) and create_dataset raise
+        client.datasets.get_dataset.side_effect = RuntimeError("also bad")
+        client.datasets.create_dataset.side_effect = RuntimeError("unexpected")
         with patch("evalwire.cli._make_client", return_value=client):
             result = _runner().invoke(main, ["upload", "--csv", str(sample_csv)])
         assert result.exit_code == 2
@@ -185,7 +186,7 @@ class TestRunCommand:
 
     def test_run_exits_1_when_dataset_missing(self, experiments_dir: Path):
         client = _mock_client()
-        client.get_dataset.side_effect = Exception("no dataset")
+        client.datasets.get_dataset.side_effect = Exception("no dataset")
         with patch("evalwire.cli._make_client", return_value=client):
             with patch(_PATCH_RUN_EXP, return_value=MagicMock()):
                 result = _runner().invoke(

@@ -187,7 +187,7 @@ class ExperimentRunner:
 
     def _get_dataset(self, name: str) -> Any | None:
         try:
-            return self.client.get_dataset(name=name)
+            return self.client.datasets.get_dataset(name=name)
         except Exception as exc:
             logger.warning(
                 "No Phoenix dataset named %r; skipping experiment (%s).", name, exc

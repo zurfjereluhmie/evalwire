@@ -173,7 +173,7 @@ class TestRun:
     def test_run_raises_system_exit_1_when_dataset_missing(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
-        mock_phoenix_client.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
         runner = _make_runner(experiments_dir, mock_phoenix_client)
         with patch(_PATCH_TARGET):
             with pytest.raises(SystemExit) as exc_info:
