@@ -1,7 +1,5 @@
 """Observability setup for evalwire — registers Phoenix as the OTel provider."""
 
-from __future__ import annotations
-
 from typing import Any
 
 
@@ -26,7 +24,7 @@ def setup_observability(
     TracerProvider
         The registered tracer provider.
     """
-    from phoenix.otel import register  # type: ignore[import-untyped]
+    from phoenix.otel import register
 
     tracer_provider = register(auto_instrument=auto_instrument)
 

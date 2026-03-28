@@ -10,8 +10,6 @@ Environment variables
     PHOENIX_API_KEY    API key if Phoenix is running in authenticated mode (optional)
 """
 
-from __future__ import annotations
-
 import argparse
 import logging
 import os

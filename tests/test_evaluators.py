@@ -1,7 +1,5 @@
 """Tests for evalwire.evaluators."""
 
-from __future__ import annotations
-
 import pytest
 
 from evalwire.evaluators import make_membership_evaluator, make_top_k_evaluator

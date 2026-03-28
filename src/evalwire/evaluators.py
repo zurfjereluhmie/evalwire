@@ -1,7 +1,5 @@
 """Built-in evaluator factories for evalwire."""
 
-from __future__ import annotations
-
 import ast
 from collections.abc import Callable
 from statistics import mean

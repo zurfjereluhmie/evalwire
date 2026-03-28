@@ -96,7 +96,7 @@ class ExperimentRunner:
 
             logger.info("Running experiment %r…", experiment_name)
             try:
-                from phoenix.experiments import (  # type: ignore[import-untyped]
+                from phoenix.experiments import (
                     run_experiment,
                 )
 

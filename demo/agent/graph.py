@@ -12,8 +12,6 @@ The graph is intentionally minimal so the demo focuses on evalwire, not on
 building a production-grade retrieval system.
 """
 
-from __future__ import annotations
-
 import operator
 from dataclasses import dataclass, field
 from typing import Annotated

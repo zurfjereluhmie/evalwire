@@ -14,8 +14,6 @@ inside a sync task would raise ``RuntimeError: asyncio.run() cannot be called
 from a running event loop`` because Phoenix already runs inside one.
 """
 
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 

@@ -14,8 +14,6 @@ A ``.env`` file in the demo directory (or any parent) is loaded automatically
 via ``python-dotenv`` before the environment is read.
 """
 
-from __future__ import annotations
-
 import argparse
 import logging
 import os
