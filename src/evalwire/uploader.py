@@ -91,22 +91,21 @@ class DatasetUploader:
     def _load_csv(self) -> pd.DataFrame:
         df = pd.read_csv(self.csv_path)
         # Split any column whose values contain the delimiter character.
+        # Use pd.api.types.is_string_dtype to support both object (pandas <3)
+        # and the new StringDtype (pandas >=3).
+        delimiter = self.delimiter
         for col in df.columns:
-            if df[col].dtype == object:
+            if pd.api.types.is_string_dtype(df[col]):
                 mask = (
-                    df[col]
-                    .astype(str)
-                    .str.contains(self.delimiter, regex=False, na=False)
+                    df[col].astype(str).str.contains(delimiter, regex=False, na=False)
                 )
                 if mask.any() or col == self.tag_column:
                     df[col] = (
                         df[col]
                         .astype(str)
                         .apply(
-                            lambda v: (
-                                [s.strip() for s in v.split(self.delimiter)]
-                                if self.delimiter in v
-                                else v
+                            lambda v, d=delimiter: (
+                                [s.strip() for s in v.split(d)] if d in v else v
                             )
                         )
                     )
