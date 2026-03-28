@@ -1,0 +1,16 @@
+services:
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    container_name: evalwire-phoenix
+    ports:
+      - "6006:6006"   # Phoenix UI + REST API
+      - "4317:4317"   # OTLP gRPC collector
+    volumes:
+      - phoenix_data:/root/.phoenix
+    environment:
+      - PHOENIX_WORKING_DIR=/root/.phoenix
+    restart: unless-stopped
+
+volumes:
+  phoenix_data:
+    driver: local
