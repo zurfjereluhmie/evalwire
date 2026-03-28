@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install install-dev install-demo lint format typecheck test check fix pre-commit clean
+.PHONY: help install install-dev install-demo lint format typecheck test check fix pre-commit docs docs-serve clean
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -37,5 +37,11 @@ pre-commit: ## Run all pre-commit hooks against all files
 	uv run pre-commit run --all-files
 
 clean: ## Remove build artifacts and caches
-	rm -rf dist .pytest_cache .ruff_cache
+	rm -rf dist .pytest_cache .ruff_cache site
 	find . -type d -name __pycache__ -exec rm -rf {} +
+
+docs: ## Build HTML documentation into site/
+	uv run mkdocs build --strict
+
+docs-serve: ## Serve docs locally with live reload (http://localhost:8000)
+	uv run mkdocs serve

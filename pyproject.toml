@@ -33,6 +33,9 @@ testpaths = ["tests"]
 
 [dependency-groups]
 dev = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.25",
     "pre-commit>=4.5.1",
     "pytest>=8.0",
     "pytest-mock>=3.14",
