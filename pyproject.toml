@@ -30,6 +30,7 @@ packages = ["src/evalwire"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 
 [dependency-groups]
 dev = [
@@ -38,6 +39,7 @@ dev = [
     "mkdocstrings[python]>=0.25",
     "pre-commit>=4.5.1",
     "pytest>=8.0",
+    "pytest-asyncio>=0.23",
     "pytest-mock>=3.14",
     "ruff>=0.15.8",
     "ty>=0.0.26",
