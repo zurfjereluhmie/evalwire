@@ -31,6 +31,9 @@ def make_top_k_evaluator(K: int = 20) -> Callable[[list[str], dict], float]:
     """
 
     def top_k(output: list[str], expected: dict) -> float:
+        if output is None:
+            return 0.0
+
         raw = expected.get("expected_output", [])
         if isinstance(raw, str):
             raw = ast.literal_eval(raw)
