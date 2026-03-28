@@ -29,9 +29,9 @@ def load_config(config_path: Path | str | None = None) -> dict[str, Any]:
         return {}
 
     if sys.version_info >= (3, 11):
-        import tomllib  # type: ignore[import]
+        import tomllib
     else:
-        import tomli as tomllib  # type: ignore[import, no-redef]
+        import tomli as tomllib  # ty: ignore[unresolved-import]
 
     with path.open("rb") as fh:
         return tomllib.load(fh)

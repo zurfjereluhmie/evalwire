@@ -21,6 +21,7 @@ from typing import Annotated
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 # ---------------------------------------------------------------------------
 # In-memory corpus — (title, body) pairs, one per topic bucket
@@ -167,7 +168,7 @@ def generate(state: RAGState) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def build_rag_graph() -> object:
+def build_rag_graph() -> CompiledStateGraph:
     """Compile and return the RAG StateGraph."""
     graph = StateGraph(RAGState)
     graph.add_node("retrieve", retrieve)

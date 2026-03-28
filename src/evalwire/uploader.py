@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import pandas as pd
 
@@ -38,15 +38,17 @@ class DatasetUploader:
         self,
         csv_path: Path | str,
         phoenix_client: Any,
-        input_keys: list[str] = ("user_query",),
-        output_keys: list[str] = ("expected_output",),
+        input_keys: list[str] | None = None,
+        output_keys: list[str] | None = None,
         tag_column: str = "tags",
         delimiter: str = "|",
     ) -> None:
         self.csv_path = Path(csv_path)
         self.client = phoenix_client
-        self.input_keys = list(input_keys)
-        self.output_keys = list(output_keys)
+        self.input_keys = list(input_keys) if input_keys is not None else ["user_query"]
+        self.output_keys = (
+            list(output_keys) if output_keys is not None else ["expected_output"]
+        )
         self.tag_column = tag_column
         self.delimiter = delimiter
 
@@ -122,7 +124,7 @@ class DatasetUploader:
             for tag in tags:
                 tag = tag.strip()
                 if tag:
-                    groups.setdefault(tag, []).append(idx)
+                    groups.setdefault(tag, []).append(cast(int, idx))
 
         return {
             tag: df.loc[indices].reset_index(drop=True)

@@ -8,8 +8,8 @@ from typing import Any
 
 def build_subgraph(
     nodes: list[tuple[str, Callable]],
-    state_cls: type,
-    input_cls: type | None = None,
+    state_cls: type[Any],
+    input_cls: type[Any] | None = None,
     *,
     name: str | None = None,
     checkpointer: Any = None,
@@ -39,7 +39,7 @@ def build_subgraph(
         The compiled subgraph, ready for ``await graph.ainvoke(...)``.
     """
     try:
-        from langgraph.graph import (  # type: ignore[import-untyped]
+        from langgraph.graph import (
             END,
             START,
             StateGraph,
@@ -74,7 +74,7 @@ def build_subgraph(
 
     compiled = graph.compile(**compile_kwargs)
     if name is not None:
-        compiled.name = name  # type: ignore[attr-defined]
+        compiled.name = name
 
     return compiled
 
@@ -82,7 +82,7 @@ def build_subgraph(
 async def invoke_node(
     node_fn: Callable,
     query: str,
-    state_cls: type,
+    state_cls: type[Any],
     *,
     message_field: str = "messages",
     config: Any = None,
@@ -112,9 +112,9 @@ async def invoke_node(
         The raw return value of the node callable.
     """
     try:
-        from langchain_core.messages import HumanMessage  # type: ignore[import-untyped]
+        from langchain_core.messages import HumanMessage
         from langchain_core.runnables import (
-            RunnableConfig,  # type: ignore[import-untyped]
+            RunnableConfig,
         )
     except ImportError as exc:
         raise ImportError(

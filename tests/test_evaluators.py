@@ -15,7 +15,7 @@ class TestMakeTopKEvaluator:
     def test_returns_callable_named_top_k(self):
         fn = make_top_k_evaluator(K=10)
         assert callable(fn)
-        assert fn.__name__ == "top_k"
+        assert fn.__name__ == "top_k"  # ty: ignore[unresolved-attribute]
 
     def test_item_at_rank_1_scores_1(self):
         top_k = make_top_k_evaluator(K=10)
@@ -99,7 +99,7 @@ class TestMakeMembershipEvaluator:
     def test_returns_callable_named_is_in(self):
         fn = make_membership_evaluator()
         assert callable(fn)
-        assert fn.__name__ == "is_in"
+        assert fn.__name__ == "is_in"  # ty: ignore[unresolved-attribute]
 
     def test_match_returns_true(self):
         is_in = make_membership_evaluator()

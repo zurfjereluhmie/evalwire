@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from typing import Literal, cast
 
 import click
 
@@ -19,7 +20,7 @@ from evalwire.config import (
 
 def _make_client():
     """Instantiate and return a Phoenix client."""
-    from phoenix.client import Client  # type: ignore[import-untyped]
+    from phoenix.client import Client
 
     return Client()
 
@@ -90,7 +91,10 @@ def upload_cmd(
 
         # CLI flags take precedence over config file values.
         resolved_csv = csv_path or ds_cfg.get("csv_path")
-        resolved_on_exist = on_exist or ds_cfg.get("on_exist", "skip")
+        resolved_on_exist = cast(
+            Literal["skip", "overwrite", "append"],
+            on_exist or ds_cfg.get("on_exist", "skip"),
+        )
         resolved_input_keys = (
             [k.strip() for k in input_keys.split(",")]
             if input_keys
