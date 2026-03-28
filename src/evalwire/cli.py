@@ -13,7 +13,12 @@ from evalwire.config import (
 
 
 def _make_client():
-    """Instantiate and return a Phoenix client."""
+    """Instantiate and return a Phoenix client.
+
+    The import of ``phoenix.client`` is deferred to this helper so that
+    importing ``evalwire.cli`` (e.g. for ``evalwire --help``) does not pay the
+    cost of loading the full Phoenix package at module import time.
+    """
     from phoenix.client import Client
 
     return Client()
