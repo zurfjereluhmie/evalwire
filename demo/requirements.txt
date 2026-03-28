@@ -1,0 +1,17 @@
+# Demo dependencies
+# Install from the repo root:
+#   pip install -e '.[langgraph,openai]' -r demo/requirements.txt
+
+# LangChain ecosystem
+langchain>=0.3,<0.4
+langchain-core>=0.3,<0.4
+langchain-openai>=0.2,<0.3
+
+# LangGraph
+langgraph>=1.0,<2
+
+# OpenAI SDK (transitive via langchain-openai, pinned here for clarity)
+openai>=1.0,<2
+
+# OpenInference tracing for LangChain
+openinference-instrumentation-langchain>=0.1,<0.2
