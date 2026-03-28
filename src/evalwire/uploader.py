@@ -38,17 +38,15 @@ class DatasetUploader:
         self,
         csv_path: Path | str,
         phoenix_client: Any,
-        input_keys: list[str] | None = None,
-        output_keys: list[str] | None = None,
+        input_keys: list[str] = ["user_query"],  # noqa: B006
+        output_keys: list[str] = ["expected_output"],  # noqa: B006
         tag_column: str = "tags",
         delimiter: str = "|",
     ) -> None:
         self.csv_path = Path(csv_path)
         self.client = phoenix_client
-        self.input_keys = list(input_keys) if input_keys is not None else ["user_query"]
-        self.output_keys = (
-            list(output_keys) if output_keys is not None else ["expected_output"]
-        )
+        self.input_keys = list(input_keys)
+        self.output_keys = list(output_keys)
         self.tag_column = tag_column
         self.delimiter = delimiter
 
