@@ -197,7 +197,7 @@ class ExperimentRunner:
             spec.loader.exec_module(module)  # type: ignore[union-attr]
             return getattr(module, attribute, None)
         except Exception as exc:
-            logger.error("Failed to load %s: %s", path, exc)
+            logger.error("Failed to load %s: %s", path, exc, exc_info=True)
             return None
 
     def _get_dataset(self, name: str) -> Any | None:

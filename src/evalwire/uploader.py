@@ -133,7 +133,12 @@ class DatasetUploader:
                 logger.info("Dataset %r already exists, skipping.", name)
                 return existing
             except Exception:
-                pass  # does not exist yet — fall through to create
+                logger.warning(
+                    "Could not fetch dataset %r; creating it instead (if this is "
+                    "not a 'not found' error, check your Phoenix endpoint and credentials).",
+                    name,
+                    exc_info=True,
+                )
             return self.client.datasets.create_dataset(
                 dataframe=df,
                 name=name,
@@ -147,7 +152,13 @@ class DatasetUploader:
                 self.client.datasets.delete_dataset(id=existing.id)
                 logger.debug("Deleted existing dataset %r for overwrite.", name)
             except Exception:
-                pass  # does not exist — nothing to delete
+                logger.warning(
+                    "Could not fetch/delete dataset %r before overwrite; "
+                    "proceeding with create (if this is not a 'not found' error, "
+                    "check your Phoenix endpoint and credentials).",
+                    name,
+                    exc_info=True,
+                )
             return self.client.datasets.create_dataset(
                 dataframe=df,
                 name=name,
@@ -167,8 +178,12 @@ class DatasetUploader:
                 logger.debug("Appended %d examples to dataset %r.", len(df), name)
                 return dataset
             except Exception:
-                logger.debug(
-                    "Dataset %r not found for append; creating it instead.", name
+                logger.warning(
+                    "Could not fetch dataset %r for append; creating it instead "
+                    "(if this is not a 'not found' error, check your Phoenix "
+                    "endpoint and credentials).",
+                    name,
+                    exc_info=True,
                 )
             return self.client.datasets.create_dataset(
                 dataframe=df,
