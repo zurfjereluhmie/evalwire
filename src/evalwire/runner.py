@@ -92,9 +92,7 @@ class ExperimentRunner:
 
             logger.info("Running experiment %r…", experiment_name)
             try:
-                from phoenix.experiments import run_experiment
-
-                result = run_experiment(
+                result = self.client.experiments.run_experiment(
                     dataset=dataset,
                     task=task,
                     evaluators=evaluators,

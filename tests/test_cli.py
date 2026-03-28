@@ -7,8 +7,6 @@ from click.testing import CliRunner
 
 from evalwire.cli import main
 
-_PATCH_RUN_EXP = "phoenix.experiments.run_experiment"
-
 
 def _runner() -> CliRunner:
     return CliRunner()
@@ -110,58 +108,54 @@ class TestRunCommand:
     def test_run_all_experiments(self, experiments_dir: Path):
         client = _mock_client()
         with patch("evalwire.cli._make_client", return_value=client):
-            with patch(_PATCH_RUN_EXP, return_value=MagicMock()):
-                result = _runner().invoke(
-                    main, ["run", "--experiments", str(experiments_dir)]
-                )
+            result = _runner().invoke(
+                main, ["run", "--experiments", str(experiments_dir)]
+            )
         assert result.exit_code == 0
         assert "2 experiment(s)" in result.output
 
     def test_run_single_named_experiment(self, experiments_dir: Path):
         client = _mock_client()
         with patch("evalwire.cli._make_client", return_value=client):
-            with patch(_PATCH_RUN_EXP, return_value=MagicMock()) as mock_run:
-                result = _runner().invoke(
-                    main,
-                    [
-                        "run",
-                        "--experiments",
-                        str(experiments_dir),
-                        "--name",
-                        "es_search",
-                    ],
-                )
+            result = _runner().invoke(
+                main,
+                [
+                    "run",
+                    "--experiments",
+                    str(experiments_dir),
+                    "--name",
+                    "es_search",
+                ],
+            )
         assert result.exit_code == 0
-        assert mock_run.call_count == 1
+        assert client.experiments.run_experiment.call_count == 1
 
     def test_run_dry_run_flag(self, experiments_dir: Path):
         client = _mock_client()
         with patch("evalwire.cli._make_client", return_value=client):
-            with patch(_PATCH_RUN_EXP, return_value=MagicMock()) as mock_run:
-                result = _runner().invoke(
-                    main,
-                    ["run", "--experiments", str(experiments_dir), "--dry-run", "2"],
-                )
+            result = _runner().invoke(
+                main,
+                ["run", "--experiments", str(experiments_dir), "--dry-run", "2"],
+            )
         assert result.exit_code == 0
-        for c in mock_run.call_args_list:
+        for c in client.experiments.run_experiment.call_args_list:
             assert c.kwargs.get("dry_run") == 2
 
     def test_run_custom_prefix(self, experiments_dir: Path):
         client = _mock_client()
         with patch("evalwire.cli._make_client", return_value=client):
-            with patch(_PATCH_RUN_EXP, return_value=MagicMock()) as mock_run:
-                result = _runner().invoke(
-                    main,
-                    [
-                        "run",
-                        "--experiments",
-                        str(experiments_dir),
-                        "--prefix",
-                        "myci",
-                    ],
-                )
+            result = _runner().invoke(
+                main,
+                [
+                    "run",
+                    "--experiments",
+                    str(experiments_dir),
+                    "--prefix",
+                    "myci",
+                ],
+            )
         assert result.exit_code == 0
-        for c in mock_run.call_args_list:
+        for c in client.experiments.run_experiment.call_args_list:
             assert c.kwargs["experiment_name"].startswith("myci_")
 
     def test_run_reads_experiments_dir_from_config(
@@ -171,43 +165,40 @@ class TestRunCommand:
         toml.write_text(f'[experiments]\ndir = "{experiments_dir}"\n')
         client = _mock_client()
         with patch("evalwire.cli._make_client", return_value=client):
-            with patch(_PATCH_RUN_EXP, return_value=MagicMock()):
-                result = _runner().invoke(main, ["run", "--config", str(toml)])
+            result = _runner().invoke(main, ["run", "--config", str(toml)])
         assert result.exit_code == 0
 
     def test_run_exits_1_when_experiment_fails(self, experiments_dir: Path):
         client = _mock_client()
+        client.experiments.run_experiment.side_effect = RuntimeError("boom")
         with patch("evalwire.cli._make_client", return_value=client):
-            with patch(_PATCH_RUN_EXP, side_effect=RuntimeError("boom")):
-                result = _runner().invoke(
-                    main, ["run", "--experiments", str(experiments_dir)]
-                )
+            result = _runner().invoke(
+                main, ["run", "--experiments", str(experiments_dir)]
+            )
         assert result.exit_code == 1
 
     def test_run_exits_1_when_dataset_missing(self, experiments_dir: Path):
         client = _mock_client()
         client.datasets.get_dataset.side_effect = Exception("no dataset")
         with patch("evalwire.cli._make_client", return_value=client):
-            with patch(_PATCH_RUN_EXP, return_value=MagicMock()):
-                result = _runner().invoke(
-                    main, ["run", "--experiments", str(experiments_dir)]
-                )
+            result = _runner().invoke(
+                main, ["run", "--experiments", str(experiments_dir)]
+            )
         assert result.exit_code == 1
 
     def test_run_concurrency_option(self, experiments_dir: Path):
         client = _mock_client()
         with patch("evalwire.cli._make_client", return_value=client):
-            with patch(_PATCH_RUN_EXP, return_value=MagicMock()):
-                result = _runner().invoke(
-                    main,
-                    [
-                        "run",
-                        "--experiments",
-                        str(experiments_dir),
-                        "--concurrency",
-                        "4",
-                    ],
-                )
+            result = _runner().invoke(
+                main,
+                [
+                    "run",
+                    "--experiments",
+                    str(experiments_dir),
+                    "--concurrency",
+                    "4",
+                ],
+            )
         assert result.exit_code == 0
 
     def test_help_text_available(self):

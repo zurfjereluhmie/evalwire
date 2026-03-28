@@ -1,13 +1,11 @@
 """Tests for evalwire.runner.ExperimentRunner."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from evalwire.runner import ExperimentRunner
-
-_PATCH_TARGET = "phoenix.experiments.run_experiment"
 
 
 def _make_runner(
@@ -124,41 +122,37 @@ class TestRun:
     def test_run_calls_run_experiment_for_each_discovered(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
-        with patch(_PATCH_TARGET) as mock_run:
-            mock_run.return_value = MagicMock()
-            runner = _make_runner(experiments_dir, mock_phoenix_client)
-            results = runner.run()
-        assert mock_run.call_count == 2
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        results = runner.run()
+        assert mock_phoenix_client.experiments.run_experiment.call_count == 2
         assert len(results) == 2
 
     def test_run_passes_dry_run_flag(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
-        with patch(_PATCH_TARGET) as mock_run:
-            mock_run.return_value = MagicMock()
-            runner = _make_runner(experiments_dir, mock_phoenix_client, dry_run=3)
-            runner.run()
-        for c in mock_run.call_args_list:
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client, dry_run=3)
+        runner.run()
+        for c in mock_phoenix_client.experiments.run_experiment.call_args_list:
             assert c.kwargs.get("dry_run") == 3
 
     def test_run_uses_custom_prefix(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
-        with patch(_PATCH_TARGET) as mock_run:
-            mock_run.return_value = MagicMock()
-            runner = _make_runner(experiments_dir, mock_phoenix_client)
-            runner.run(experiment_name_prefix="ci")
-        for c in mock_run.call_args_list:
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        runner.run(experiment_name_prefix="ci")
+        for c in mock_phoenix_client.experiments.run_experiment.call_args_list:
             assert c.kwargs["experiment_name"].startswith("ci_")
 
     def test_run_attaches_metadata(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
-        with patch(_PATCH_TARGET) as mock_run:
-            mock_run.return_value = MagicMock()
-            runner = _make_runner(experiments_dir, mock_phoenix_client)
-            runner.run(metadata={"branch": "main"})
-        for c in mock_run.call_args_list:
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        runner.run(metadata={"branch": "main"})
+        for c in mock_phoenix_client.experiments.run_experiment.call_args_list:
             assert c.kwargs["experiment_metadata"]["branch"] == "main"
 
     def test_run_returns_empty_for_no_experiments(
@@ -175,37 +169,35 @@ class TestRun:
     ):
         mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
         runner = _make_runner(experiments_dir, mock_phoenix_client)
-        with patch(_PATCH_TARGET):
-            with pytest.raises(SystemExit) as exc_info:
-                runner.run()
+        with pytest.raises(SystemExit) as exc_info:
+            runner.run()
         assert exc_info.value.code == 1
 
     def test_run_raises_system_exit_1_when_experiment_errors(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
-        with patch(_PATCH_TARGET) as mock_run:
-            mock_run.side_effect = RuntimeError("boom")
-            runner = _make_runner(experiments_dir, mock_phoenix_client)
-            with pytest.raises(SystemExit) as exc_info:
-                runner.run()
+        mock_phoenix_client.experiments.run_experiment.side_effect = RuntimeError(
+            "boom"
+        )
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        with pytest.raises(SystemExit) as exc_info:
+            runner.run()
         assert exc_info.value.code == 1
 
     def test_run_filters_by_names(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
-        with patch(_PATCH_TARGET) as mock_run:
-            mock_run.return_value = MagicMock()
-            runner = _make_runner(experiments_dir, mock_phoenix_client)
-            results = runner.run(names=["es_search"])
-        assert mock_run.call_count == 1
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        results = runner.run(names=["es_search"])
+        assert mock_phoenix_client.experiments.run_experiment.call_count == 1
         assert len(results) == 1
 
     def test_experiment_name_includes_dataset_name(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
-        with patch(_PATCH_TARGET) as mock_run:
-            mock_run.return_value = MagicMock()
-            runner = _make_runner(experiments_dir, mock_phoenix_client)
-            runner.run(names=["es_search"])
-        call_kwargs = mock_run.call_args.kwargs
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        runner.run(names=["es_search"])
+        call_kwargs = mock_phoenix_client.experiments.run_experiment.call_args.kwargs
         assert "es_search" in call_kwargs["experiment_name"]
