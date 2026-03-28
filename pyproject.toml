@@ -37,6 +37,7 @@ dev = [
     "pytest>=8.0",
     "pytest-mock>=3.14",
     "ruff>=0.15.8",
+    "ty>=0.0.26",
 ]
 demo = [
     "evalwire[langgraph,openai]",
