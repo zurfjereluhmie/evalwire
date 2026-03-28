@@ -4,13 +4,11 @@ The task isolates the ``retrieve`` node of the RAG graph using
 ``evalwire.langgraph.build_subgraph``, invokes it with the user query, and
 returns the list of retrieved document titles.
 
-Expected dataset example shape (produced by DatasetUploader):
-    {
-        "input":  {"user_query": "..."},
-        "output": {"expected_output": ["Title A", "Title B", ...]},
-    }
+Phoenix passes each dataset row as a ``phoenix.experiments.types.Example``
+dataclass — access fields via attributes (``example.input``, ``example.output``),
+not by subscript.
 
-The ``task`` callable must accept one dict argument and return the system
+The ``task`` callable must accept one ``Example`` argument and return the system
 output — here a plain list of retrieved titles.
 """
 
@@ -37,20 +35,21 @@ _subgraph = build_subgraph(
 )
 
 
-def task(example: dict) -> list[str]:
+def task(example) -> list[str]:
     """Run the retrieve node for a single dataset example.
 
     Parameters
     ----------
     example:
-        A dict with at least an ``"input"`` key containing ``"user_query"``.
+        A ``phoenix.experiments.types.Example`` dataclass whose ``.input``
+        mapping contains ``"user_query"``.
 
     Returns
     -------
     list[str]
         The titles of the documents retrieved for the query.
     """
-    query: str = example["input"]["user_query"]
+    query: str = example.input["user_query"]
 
     from langchain_core.messages import HumanMessage
 
