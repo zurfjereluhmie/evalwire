@@ -8,13 +8,14 @@ Phoenix passes each dataset row as a ``phoenix.experiments.types.Example``
 dataclass — access fields via attributes (``example.input``, ``example.output``),
 not by subscript.
 
-The ``task`` callable must accept one ``Example`` argument and return the system
-output — here a plain list of retrieved titles.
+The ``task`` callable must be an ``async def`` so that Phoenix's
+``async_run_experiment`` can ``await`` it directly.  Using ``asyncio.run()``
+inside a sync task would raise ``RuntimeError: asyncio.run() cannot be called
+from a running event loop`` because Phoenix already runs inside one.
 """
 
 from __future__ import annotations
 
-import asyncio
 import sys
 from pathlib import Path
 
@@ -35,7 +36,7 @@ _subgraph = build_subgraph(
 )
 
 
-def task(example) -> list[str]:
+async def task(example) -> list[str]:
     """Run the retrieve node for a single dataset example.
 
     Parameters
@@ -54,5 +55,5 @@ def task(example) -> list[str]:
     from langchain_core.messages import HumanMessage
 
     state = RAGState(messages=[HumanMessage(content=query)])
-    result = asyncio.run(_subgraph.ainvoke(state))
+    result = await _subgraph.ainvoke(state)
     return result["retrieved_titles"]
