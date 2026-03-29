@@ -7,9 +7,9 @@ python-platform = "linux"
 exclude = ["demo"]
 
 [[overrides]]
-# evalwire.langgraph imports langgraph and langchain-core lazily (optional extras).
-# These are not installed in the dev environment; suppress the resulting diagnostics.
-include = ["src/evalwire/langgraph.py"]
+# evalwire.langgraph and the async task tests import langgraph and langchain-core
+# lazily (optional extras not installed in the dev environment).
+include = ["src/evalwire/langgraph.py", "tests/test_task_async.py"]
 
 [overrides.rules]
 unresolved-import = "ignore"
