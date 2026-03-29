@@ -4,6 +4,8 @@
 
 ---
 
+[![CI](https://github.com/zurfjereluhmie/evalwire/actions/workflows/ci.yml/badge.svg)](https://github.com/zurfjereluhmie/evalwire/actions/workflows/ci.yml)
+
 ## What it does
 
 When iterating on a LangGraph agent, it is hard to know whether a change to a specific node improved or degraded its behaviour. Running the full graph end-to-end is expensive and makes it difficult to attribute a score change to a specific component.
