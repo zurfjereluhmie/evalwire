@@ -46,7 +46,7 @@ dev = [
 ]
 demo = [
     "evalwire[langgraph,openai]",
-    "arize-phoenix==13.19.2",
+    "arize-phoenix>=13.0,<14",
     "langchain>=0.3,<0.4",
     "langchain-core>=0.3,<0.4",
     "langchain-openai>=0.2,<0.3",

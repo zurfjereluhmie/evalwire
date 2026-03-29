@@ -672,7 +672,7 @@ provides-extras = ["langgraph", "langchain", "openai", "all"]
 
 [package.metadata.requires-dev]
 demo = [
-    { name = "arize-phoenix", specifier = "==13.19.2" },
+    { name = "arize-phoenix", specifier = ">=13.0,<14" },
     { name = "evalwire", extras = ["langgraph", "openai"] },
     { name = "langchain", specifier = ">=0.3,<0.4" },
     { name = "langchain-core", specifier = ">=0.3,<0.4" },
