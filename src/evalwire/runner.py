@@ -8,6 +8,7 @@ import importlib.util
 import inspect
 import logging
 import sys
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +18,23 @@ if TYPE_CHECKING:
     from phoenix.client import Client
 
 logger = logging.getLogger(__name__)
+
+# Thread-local storage for persistent per-thread event loops.
+# Phoenix runs tasks in a ThreadPoolExecutor; each worker thread may process
+# multiple examples sequentially. We keep one event loop alive per thread so
+# that async libraries (httpx, anyio, etc.) can close their transports cleanly
+# without hitting "RuntimeError: Event loop is closed".
+_thread_local = threading.local()
+
+
+def _get_thread_event_loop() -> asyncio.AbstractEventLoop:
+    """Return the running event loop for the current thread, creating one if needed."""
+    loop: asyncio.AbstractEventLoop | None = getattr(_thread_local, "loop", None)
+    if loop is None or loop.is_closed():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        _thread_local.loop = loop
+    return loop
 
 
 class ExperimentRunner:
@@ -91,11 +109,15 @@ class ExperimentRunner:
 
             # Phoenix's sync client cannot await coroutine functions directly.
             # Wrap async tasks in a sync bridge so they work transparently.
+            # We use a persistent per-thread event loop instead of asyncio.run()
+            # because asyncio.run() closes the loop after each call, which breaks
+            # async libraries (httpx, anyio) that try to clean up transports on a
+            # loop that is already gone ("RuntimeError: Event loop is closed").
             if inspect.iscoroutinefunction(task):
                 _async_task = task
 
                 def task(example: Any, _fn: Any = _async_task) -> Any:  # noqa: E731
-                    return asyncio.run(_fn(example))
+                    return _get_thread_event_loop().run_until_complete(_fn(example))
 
             timestamp = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
             experiment_name = f"{experiment_name_prefix}_{exp_name}_{timestamp}"
