@@ -17,8 +17,26 @@ permissions:
   id-token: write    # needed by actions/deploy-pages (OIDC)
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.filter.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            changed:
+              - docs/**
+              - mkdocs.yml
+              - src/**
+              - .github/workflows/docs.yml
+
   build:
     name: Build MkDocs site
+    needs: changes
+    if: needs.changes.outputs.changed == 'true'
     runs-on: ubuntu-latest
 
     steps:
