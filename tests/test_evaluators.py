@@ -82,6 +82,19 @@ class TestMakeTopKEvaluator:
         score = top_k(["a"], {})
         assert score == pytest.approx(0.0)
 
+    def test_bare_string_expected_output_is_treated_as_single_item(self):
+        """A plain identifier string (e.g. from a CSV column) must not crash
+        ast.literal_eval and should be treated as a single-item expected list."""
+        top_k = make_top_k_evaluator(K=10)
+        # "some_url" is a bare identifier — not a Python literal
+        score = top_k(["some_url"], {"expected_output": "some_url"})
+        assert score == pytest.approx(1.0)
+
+    def test_bare_string_expected_output_no_match(self):
+        top_k = make_top_k_evaluator(K=10)
+        score = top_k(["other_url"], {"expected_output": "some_url"})
+        assert score == pytest.approx(0.0)
+
 
 class TestMakeMembershipEvaluator:
     def test_returns_callable_named_is_in(self):
@@ -120,3 +133,14 @@ class TestMakeMembershipEvaluator:
     def test_case_sensitive(self):
         is_in = make_membership_evaluator()
         assert is_in("ES_SEARCH", {"expected_output": ["es_search"]}) is False
+
+    def test_bare_string_expected_output_is_treated_as_single_item(self):
+        """A plain identifier string (e.g. from a CSV column) must not crash
+        ast.literal_eval and should be treated as a single-item expected list."""
+        is_in = make_membership_evaluator()
+        # "elasticsearch" is a bare identifier — not a Python literal
+        assert is_in("elasticsearch", {"expected_output": "elasticsearch"}) is True
+
+    def test_bare_string_expected_output_no_match(self):
+        is_in = make_membership_evaluator()
+        assert is_in("cms", {"expected_output": "elasticsearch"}) is False
