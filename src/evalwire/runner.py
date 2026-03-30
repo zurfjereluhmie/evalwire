@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import importlib
 import importlib.util
+import inspect
 import logging
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -86,6 +88,14 @@ class ExperimentRunner:
             dataset = self._get_dataset(exp_name)
             if dataset is None:
                 return None
+
+            # Phoenix's sync client cannot await coroutine functions directly.
+            # Wrap async tasks in a sync bridge so they work transparently.
+            if inspect.iscoroutinefunction(task):
+                _async_task = task
+
+                def task(example: Any, _fn: Any = _async_task) -> Any:  # noqa: E731
+                    return asyncio.run(_fn(example))
 
             timestamp = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
             experiment_name = f"{experiment_name_prefix}_{exp_name}_{timestamp}"

@@ -227,3 +227,39 @@ class TestRun:
         runner.run(names=["es_search"])
         call_kwargs = mock_phoenix_client.experiments.run_experiment.call_args.kwargs
         assert "es_search" in call_kwargs["experiment_name"]
+
+    def test_async_task_is_wrapped_and_callable_by_sync_phoenix(
+        self, tmp_path: Path, mock_phoenix_client: MagicMock
+    ):
+        """An async task must be transparently wrapped so Phoenix's sync runner
+        can call it without getting back an unawaited coroutine."""
+        base = tmp_path / "experiments"
+        base.mkdir()
+        exp = base / "async_exp"
+        exp.mkdir()
+        (exp / "task.py").write_text("async def task(example): return 'async_result'\n")
+
+        # Capture the task callable that is passed to run_experiment.
+        captured: dict = {}
+
+        def _capture_task(**kwargs: object) -> MagicMock:
+            captured["task"] = kwargs["task"]
+            return MagicMock()
+
+        mock_phoenix_client.experiments.run_experiment.side_effect = _capture_task
+
+        runner = _make_runner(base, mock_phoenix_client)
+        runner.run()
+
+        assert "task" in captured, "run_experiment was not called"
+        wrapped = captured["task"]
+        # The wrapped task must be a plain callable (not a coroutine function)
+        # so Phoenix's sync runner can call it directly.
+        import inspect
+
+        assert not inspect.iscoroutinefunction(wrapped), (
+            "Async task should have been wrapped into a sync callable"
+        )
+        # Calling it must return the real result, not a coroutine.
+        result = wrapped(example=object())
+        assert result == "async_result"

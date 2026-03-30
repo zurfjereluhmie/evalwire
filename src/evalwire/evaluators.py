@@ -34,7 +34,10 @@ def make_top_k_evaluator(K: int = 20) -> Callable[[list[str], dict], float]:
 
         raw = expected.get("expected_output", [])
         if isinstance(raw, str):
-            raw = ast.literal_eval(raw)
+            try:
+                raw = ast.literal_eval(raw)
+            except (ValueError, SyntaxError):
+                raw = [raw]
         expected_items: list[str] = list(raw)
 
         if not expected_items:
@@ -74,7 +77,10 @@ def make_membership_evaluator() -> Callable[[str, dict], bool]:
     def is_in(output: str, expected: dict) -> bool:
         raw = expected.get("expected_output", [])
         if isinstance(raw, str):
-            raw = ast.literal_eval(raw)
+            try:
+                raw = ast.literal_eval(raw)
+            except (ValueError, SyntaxError):
+                raw = [raw]
         expected_items: list[str] = list(raw)
         return output in expected_items
 
