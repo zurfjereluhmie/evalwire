@@ -263,3 +263,33 @@ class TestRun:
         # Calling it must return the real result, not a coroutine.
         result = wrapped(example=object())
         assert result == "async_result"
+
+    def test_async_task_loop_is_reused_across_calls(
+        self, tmp_path: Path, mock_phoenix_client: MagicMock
+    ):
+        """The per-thread event loop must stay open between successive task calls.
+        Closing the loop after each call (e.g. asyncio.run()) breaks async I/O
+        libraries that close transports after the coroutine returns."""
+        base = tmp_path / "experiments"
+        base.mkdir()
+        exp = base / "loop_reuse_exp"
+        exp.mkdir()
+        (exp / "task.py").write_text("async def task(example): return 'ok'\n")
+
+        captured: dict = {}
+
+        def _capture_task(**kwargs: object) -> MagicMock:
+            captured["task"] = kwargs["task"]
+            return MagicMock()
+
+        mock_phoenix_client.experiments.run_experiment.side_effect = _capture_task
+
+        runner = _make_runner(base, mock_phoenix_client)
+        runner.run()
+
+        wrapped = captured["task"]
+        # Simulate Phoenix calling the task for multiple examples sequentially.
+        # If the loop were closed between calls the second call would raise
+        # "RuntimeError: Event loop is closed".
+        assert wrapped(example=object()) == "ok"
+        assert wrapped(example=object()) == "ok"  # must not raise
