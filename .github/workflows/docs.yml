@@ -12,19 +12,18 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write   # needed to push to the gh-pages branch
+  contents: read
+  pages: write       # needed by actions/deploy-pages
+  id-token: write    # needed by actions/deploy-pages (OIDC)
 
 jobs:
-  deploy:
-    name: Build & deploy MkDocs site
+  build:
+    name: Build MkDocs site
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
-          # Full history is not needed for a simple mkdocs gh-deploy, but
-          # fetch-depth: 0 gives mkdocs-git-revision-date accurate dates if
-          # you add that plugin later.
           fetch-depth: 0
 
       - name: Install uv
@@ -40,5 +39,23 @@ jobs:
       - name: Install dependencies
         run: uv sync --group dev
 
-      - name: Build & deploy to GitHub Pages
-        run: uv run mkdocs gh-deploy --force --clean --verbose
+      - name: Build docs
+        run: uv run mkdocs build --clean --strict
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
