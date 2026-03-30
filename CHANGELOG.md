@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/zurfjereluhmie/evalwire/compare/v0.2.0...v0.2.1) (2026-03-30)
+
+
+### Bug Fixes
+
+* wrap async tasks for sync Phoenix client ([#5](https://github.com/zurfjereluhmie/evalwire/issues/5)) ([9d370cc](https://github.com/zurfjereluhmie/evalwire/commit/9d370cc1c4a24a7721ddfc1274be0e123553594e))
+
 ## [0.2.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.1.0...v0.2.0) (2026-03-30)
 
 
