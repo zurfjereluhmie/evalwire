@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/zurfjereluhmie/evalwire/compare/v0.2.1...v0.2.2) (2026-03-30)
+
+
+### Bug Fixes
+
+* use per-thread persistent event loop to prevent 'Event loop is closed' ([86f97ba](https://github.com/zurfjereluhmie/evalwire/commit/86f97ba73e080f5c95dceaa93c6d8c33b875ee34))
+
 ## [0.2.1](https://github.com/zurfjereluhmie/evalwire/compare/v0.2.0...v0.2.1) (2026-03-30)
 
 
