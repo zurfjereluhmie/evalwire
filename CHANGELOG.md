@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.2.2...v0.3.0) (2026-03-31)
+
+
+### Features
+
+* add 7 evaluator factories with tests and updated dependencies ([#13](https://github.com/zurfjereluhmie/evalwire/issues/13)) ([91b493e](https://github.com/zurfjereluhmie/evalwire/commit/91b493e244d8c83e55f7bb88b53e9770867cfaef))
+* add verified PyPI project URLs ([#17](https://github.com/zurfjereluhmie/evalwire/issues/17)) ([950f3e6](https://github.com/zurfjereluhmie/evalwire/commit/950f3e6c5f3751bf7fc4c65114241f5e1607d999))
+
+
+### Documentation
+
+* update README and docs to cover all 9 evaluator factories ([#16](https://github.com/zurfjereluhmie/evalwire/issues/16)) ([5a82c1d](https://github.com/zurfjereluhmie/evalwire/commit/5a82c1d3c7d2d1ba38fa7a46cfd600a47151949e))
+
 ## [0.2.2](https://github.com/zurfjereluhmie/evalwire/compare/v0.2.1...v0.2.2) (2026-03-30)
 
 
