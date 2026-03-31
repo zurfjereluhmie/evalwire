@@ -43,6 +43,11 @@ def _parse_expected(expected: dict) -> list[str]:
             raw = ast.literal_eval(raw)
         except (ValueError, SyntaxError):
             raw = [raw]
+    # ast.literal_eval may return a non-collection (e.g. a float or int for
+    # numeric strings like "2.72").  Wrap scalars so the caller always gets a
+    # list it can iterate over.
+    if not isinstance(raw, (list, tuple)):
+        raw = [raw]
     return list(raw)
 
 
