@@ -22,7 +22,7 @@ dependencies = [
 langgraph  = ["langgraph==1.1.3"]
 langchain  = ["openinference-instrumentation-langchain>=0.1"]
 openai     = ["openinference-instrumentation-openai>=0.1"]
-llm-judge  = ["langchain-core>=0.3"]
+llm-judge  = ["langchain-core>=1.0,<2"]
 all        = ["evalwire[langgraph,langchain,openai,llm-judge]"]
 
 [project.scripts]
@@ -50,11 +50,11 @@ dev = [
 demo = [
     "evalwire[langgraph,openai]",
     "arize-phoenix>=13.0,<14",
-    "langchain>=0.3",
-    "langchain-core>=1.0",
-    "langchain-openai>=0.2",
+    "langchain>=1.0,<2",
+    "langchain-core>=1.0,<2",
+    "langchain-openai>=1.0,<2",
     "langgraph==1.1.3",
-    "openai>=1.0,<2",
+    "openai>=2.0,<3",
     "openinference-instrumentation-langchain>=0.1,<0.2",
-    "python-dotenv>=1.0",
+    "python-dotenv>=1.0,<2",
 ]
