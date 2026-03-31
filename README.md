@@ -4,7 +4,9 @@
 
 ---
 
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![CI](https://github.com/zurfjereluhmie/evalwire/actions/workflows/ci.yml/badge.svg)](https://github.com/zurfjereluhmie/evalwire/actions/workflows/ci.yml)
+![PyPI - Version](https://img.shields.io/pypi/v/evalwire)
 
 ## What it does
 
@@ -74,13 +76,13 @@ async def task(example) -> list[str]:
 
 ## CLI reference
 
-| Command | Description |
-|---------|-------------|
-| `evalwire upload --csv PATH` | Upload CSV testset to Phoenix |
-| `evalwire run --experiments DIR` | Discover and run all experiments |
-| `evalwire run --name NAME` | Run a single named experiment |
-| `evalwire run --dry-run N` | Run N examples without recording results |
-| `evalwire run --concurrency N` | Run N experiments in parallel |
+| Command                          | Description                              |
+| -------------------------------- | ---------------------------------------- |
+| `evalwire upload --csv PATH`     | Upload CSV testset to Phoenix            |
+| `evalwire run --experiments DIR` | Discover and run all experiments         |
+| `evalwire run --name NAME`       | Run a single named experiment            |
+| `evalwire run --dry-run N`       | Run N examples without recording results |
+| `evalwire run --concurrency N`   | Run N experiments in parallel            |
 
 ---
 
