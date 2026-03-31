@@ -26,6 +26,10 @@ When iterating on a LangGraph agent, it is hard to know whether a change to a sp
 pip install evalwire
 # With LangGraph node-isolation helpers:
 pip install 'evalwire[langgraph]'
+# With LLM-as-a-judge evaluator:
+pip install 'evalwire[llm-judge]'
+# Everything:
+pip install 'evalwire[all]'
 ```
 
 ---
@@ -57,6 +61,59 @@ experiments/
 ```bash
 evalwire run --experiments experiments/
 ```
+
+---
+
+## Built-in evaluators
+
+All factories are importable from `evalwire.evaluators` and return a callable with
+signature `(output, expected: dict) -> float | bool`.
+
+| Factory | Returns | Use case |
+|---|---|---|
+| `make_top_k_evaluator(K=20)` | `float` | Position-weighted retrieval scoring |
+| `make_membership_evaluator()` | `bool` | Classification / routing label check |
+| `make_exact_match_evaluator()` | `bool` | Extractive QA, single ground-truth string |
+| `make_contains_evaluator()` | `bool` | Free-text generation, required phrase present |
+| `make_regex_evaluator()` | `bool` | Structured format validation (dates, IDs, …) |
+| `make_json_match_evaluator(keys)` | `float` | Tool-call / structured-output key matching |
+| `make_schema_evaluator(schema)` | `bool` | JSON Schema conformance |
+| `make_numeric_tolerance_evaluator(atol, rtol)` | `bool` | Math / calculation tasks with tolerance |
+| `make_llm_judge_evaluator(model, prompt, schema)` | `float\|bool` | LLM-as-a-judge with structured output |
+
+### Example
+
+```python
+from evalwire.evaluators import make_top_k_evaluator, make_exact_match_evaluator
+
+# Drop the factory return value into your experiment directory as the evaluator
+top_k = make_top_k_evaluator(K=5)
+exact = make_exact_match_evaluator()
+```
+
+### LLM judge
+
+```python
+from pydantic import BaseModel
+from langchain.chat_models import init_chat_model
+from evalwire.evaluators import make_llm_judge_evaluator
+
+class Verdict(BaseModel):
+    explanation: str
+    score: bool  # True = correct
+
+llm_judge = make_llm_judge_evaluator(
+    model=init_chat_model("gpt-4o-mini"),
+    prompt_template=(
+        "Output: {output}\n"
+        "Expected: {expected_output}\n"
+        "Is the output correct? Think step by step, then set score."
+    ),
+    output_schema=Verdict,
+)
+```
+
+Requires `pip install 'evalwire[llm-judge]'`.
 
 ---
 

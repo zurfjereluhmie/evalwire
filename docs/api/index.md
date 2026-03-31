@@ -4,7 +4,7 @@ Full reference for all public modules in `evalwire`.
 
 | Module | Description |
 |---|---|
-| [evaluators](evaluators.md) | Built-in evaluator factories (`top_k`, `membership`) |
+| [evaluators](evaluators.md) | Built-in evaluator factories (`top_k`, `membership`, `exact_match`, `contains`, `regex`, `json_match`, `schema`, `numeric_tolerance`, `llm_judge`) |
 | [uploader](uploader.md) | Upload CSV testsets to Phoenix |
 | [runner](runner.md) | Discover and run experiments |
 | [observability](observability.md) | OpenTelemetry tracing setup |
