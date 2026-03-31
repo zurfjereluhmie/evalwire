@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install install-dev install-demo lint format typecheck test check fix pre-commit docs docs-serve clean
+.PHONY: help install install-dev install-demo sync lint format typecheck test check fix pre-commit docs docs-serve clean
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -14,6 +14,9 @@ install-dev: ## Install package with dev dependencies
 
 install-demo: ## Install package with dev + demo dependencies
 	uv sync --group dev --group demo
+
+sync: ## Install all extras and dependency groups (for local development)
+	uv sync --all-extras --all-groups
 
 lint: ## Run ruff linter (check only)
 	uv run ruff check src tests demo
