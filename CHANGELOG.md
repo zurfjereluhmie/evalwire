@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/zurfjereluhmie/evalwire/compare/v0.3.0...v0.3.1) (2026-03-31)
+
+
+### Documentation
+
+* update PyPI version badge to include cache parameter ([29791dd](https://github.com/zurfjereluhmie/evalwire/commit/29791dd70013b31ece21a7ed3aad534d5a6df748))
+
 ## [0.3.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.2.2...v0.3.0) (2026-03-31)
 
 
