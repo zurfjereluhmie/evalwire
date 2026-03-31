@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Any, Literal
 if TYPE_CHECKING:
     from pydantic import BaseModel
 
-
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -540,18 +539,16 @@ def make_llm_judge_evaluator(
         field_annotation = float
     _zero: Any = _zero_value_for(field_annotation)
 
-    # Bind the structured-output chain once at factory-creation time.
-    # The lazy import means the ImportError surfaces here (at factory creation)
-    # rather than at evaluation time, which is more user-friendly.
+    # Bind the structured-output chain once at factory-creation time so that
+    # any ImportError for langchain-core surfaces early with a clear message.
     try:
-        from langchain_core.messages import HumanMessage  # noqa: F401
-    except ImportError as exc:
+        structured_chain = model.with_structured_output(output_schema)
+    except AttributeError:
+        # model doesn't have with_structured_output → langchain-core missing
         raise ImportError(
             "langchain-core is required to use make_llm_judge_evaluator. "
             "Install it with: pip install 'evalwire[llm-judge]'"
-        ) from exc
-
-    structured_chain = model.with_structured_output(output_schema)
+        )
 
     def llm_judge(output: str, expected: dict) -> Any:
         expected_items = _parse_expected(expected)

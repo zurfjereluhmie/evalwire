@@ -1,6 +1,16 @@
 """evalwire — systematic evaluation of LangGraph nodes with Arize Phoenix."""
 
-from evalwire.evaluators import make_membership_evaluator, make_top_k_evaluator
+from evalwire.evaluators import (
+    make_contains_evaluator,
+    make_exact_match_evaluator,
+    make_json_match_evaluator,
+    make_llm_judge_evaluator,
+    make_membership_evaluator,
+    make_numeric_tolerance_evaluator,
+    make_regex_evaluator,
+    make_schema_evaluator,
+    make_top_k_evaluator,
+)
 from evalwire.observability import setup_observability
 from evalwire.runner import ExperimentRunner
 from evalwire.uploader import DatasetUploader
@@ -8,7 +18,14 @@ from evalwire.uploader import DatasetUploader
 __all__ = [
     "DatasetUploader",
     "ExperimentRunner",
+    "make_contains_evaluator",
+    "make_exact_match_evaluator",
+    "make_json_match_evaluator",
+    "make_llm_judge_evaluator",
     "make_membership_evaluator",
+    "make_numeric_tolerance_evaluator",
+    "make_regex_evaluator",
+    "make_schema_evaluator",
     "make_top_k_evaluator",
     "setup_observability",
     # LangGraph helpers — available when the `evalwire[langgraph]` extra is
