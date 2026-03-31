@@ -361,6 +361,8 @@ def make_schema_evaluator(schema: dict) -> Callable[[str, dict], bool]:
     """
 
     def schema_valid(output: str, expected: dict) -> bool:  # noqa: ARG001
+        if output is None:
+            return False
         try:
             import jsonschema
         except ImportError as exc:
@@ -369,8 +371,6 @@ def make_schema_evaluator(schema: dict) -> Callable[[str, dict], bool]:
                 "Install it with: pip install 'jsonschema>=4.0'"
             ) from exc
 
-        if output is None:
-            return False
         try:
             instance = json.loads(output)
         except (json.JSONDecodeError, TypeError):
@@ -567,8 +567,8 @@ def make_llm_judge_evaluator(
             return getattr(result, result_key)
         except Exception as exc:  # noqa: BLE001
             if on_error == "reraise":
-                assert error_callback is not None  # guaranteed by factory validation
-                error_callback(exc)
+                if error_callback is not None:
+                    error_callback(exc)
                 raise
             return _zero
 
