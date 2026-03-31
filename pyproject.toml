@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name            = "evalwire"
-version         = "0.2.2"
+version         = "0.3.0"
 description     = "Systematic evaluation of LangGraph nodes using Arize Phoenix experiments."
 readme          = "README.md"
 license         = "BSD-3-Clause"
