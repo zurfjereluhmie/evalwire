@@ -497,7 +497,7 @@ class TestMakeSchemaEvaluator:
         self, monkeypatch: pytest.MonkeyPatch
     ):
         """If jsonschema is not importable, a helpful ImportError must be raised."""
-        monkeypatch.setitem(sys.modules, "jsonschema", None)  # ty: ignore[call-overload]
+        monkeypatch.setitem(sys.modules, "jsonschema", None)  # type: ignore[arg-type]
         schema_valid = make_schema_evaluator(_SIMPLE_SCHEMA)
         with pytest.raises(ImportError, match="jsonschema"):
             schema_valid(json.dumps({"name": "Frank", "age": 1}), {})
