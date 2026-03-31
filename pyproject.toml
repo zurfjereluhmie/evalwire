@@ -14,14 +14,16 @@ dependencies = [
     "arize-phoenix>=13.0,<14",
     "pandas>=2.0",
     "click>=8.0",
+    "jsonschema>=4.0",
     "tomli>=2.0; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]
-langgraph = ["langgraph>=0.2"]
-langchain = ["openinference-instrumentation-langchain>=0.1"]
-openai    = ["openinference-instrumentation-openai>=0.1"]
-all       = ["evalwire[langgraph,langchain,openai]"]
+langgraph  = ["langgraph>=0.2"]
+langchain  = ["openinference-instrumentation-langchain>=0.1"]
+openai     = ["openinference-instrumentation-openai>=0.1"]
+llm-judge  = ["langchain-core>=0.3"]
+all        = ["evalwire[langgraph,langchain,openai,llm-judge]"]
 
 [project.scripts]
 evalwire = "evalwire.cli:main"

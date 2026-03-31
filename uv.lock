@@ -612,6 +612,7 @@ source = { editable = "." }
 dependencies = [
     { name = "arize-phoenix" },
     { name = "click" },
+    { name = "jsonschema" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pandas", version = "3.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
@@ -619,6 +620,7 @@ dependencies = [
 
 [package.optional-dependencies]
 all = [
+    { name = "langchain-core" },
     { name = "langgraph" },
     { name = "openinference-instrumentation-langchain" },
     { name = "openinference-instrumentation-openai" },
@@ -628,6 +630,9 @@ langchain = [
 ]
 langgraph = [
     { name = "langgraph" },
+]
+llm-judge = [
+    { name = "langchain-core" },
 ]
 openai = [
     { name = "openinference-instrumentation-openai" },
@@ -661,14 +666,16 @@ dev = [
 requires-dist = [
     { name = "arize-phoenix", specifier = ">=13.0,<14" },
     { name = "click", specifier = ">=8.0" },
-    { name = "evalwire", extras = ["langgraph", "langchain", "openai"], marker = "extra == 'all'" },
+    { name = "evalwire", extras = ["langgraph", "langchain", "openai", "llm-judge"], marker = "extra == 'all'" },
+    { name = "jsonschema", specifier = ">=4.0" },
+    { name = "langchain-core", marker = "extra == 'llm-judge'", specifier = ">=0.3" },
     { name = "langgraph", marker = "extra == 'langgraph'", specifier = ">=0.2" },
     { name = "openinference-instrumentation-langchain", marker = "extra == 'langchain'", specifier = ">=0.1" },
     { name = "openinference-instrumentation-openai", marker = "extra == 'openai'", specifier = ">=0.1" },
     { name = "pandas", specifier = ">=2.0" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0" },
 ]
-provides-extras = ["langgraph", "langchain", "openai", "all"]
+provides-extras = ["langgraph", "langchain", "openai", "llm-judge", "all"]
 
 [package.metadata.requires-dev]
 demo = [
