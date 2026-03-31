@@ -4,6 +4,41 @@ import ast
 from collections.abc import Callable
 from statistics import mean
 
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+
+def _parse_expected(expected: dict) -> list[str]:
+    """Parse the ``expected_output`` entry of an *expected* dict into a list.
+
+    Handles three cases:
+
+    * Already a ``list`` – returned as-is (cast to ``list[str]``).
+    * A ``str`` that is a valid Python literal (e.g. ``"['a', 'b']"``) –
+      evaluated with :func:`ast.literal_eval`.
+    * Any other ``str`` (plain identifiers, URLs, …) – wrapped in a
+      single-element list.
+
+    Parameters
+    ----------
+    expected:
+        The full ``expected`` dict passed to an evaluator.
+
+    Returns
+    -------
+    list[str]
+        Always a list; may be empty if the key is absent or the value is
+        an empty collection.
+    """
+    raw = expected.get("expected_output", [])
+    if isinstance(raw, str):
+        try:
+            raw = ast.literal_eval(raw)
+        except (ValueError, SyntaxError):
+            raw = [raw]
+    return list(raw)
+
 
 def make_top_k_evaluator(K: int = 20) -> Callable[[list[str], dict], float]:
     """Return a position-weighted retrieval scoring evaluator.
@@ -32,13 +67,7 @@ def make_top_k_evaluator(K: int = 20) -> Callable[[list[str], dict], float]:
         if output is None:
             return 0.0
 
-        raw = expected.get("expected_output", [])
-        if isinstance(raw, str):
-            try:
-                raw = ast.literal_eval(raw)
-            except (ValueError, SyntaxError):
-                raw = [raw]
-        expected_items: list[str] = list(raw)
+        expected_items = _parse_expected(expected)
 
         if not expected_items:
             return 0.0
@@ -75,13 +104,7 @@ def make_membership_evaluator() -> Callable[[str, dict], bool]:
     """
 
     def is_in(output: str, expected: dict) -> bool:
-        raw = expected.get("expected_output", [])
-        if isinstance(raw, str):
-            try:
-                raw = ast.literal_eval(raw)
-            except (ValueError, SyntaxError):
-                raw = [raw]
-        expected_items: list[str] = list(raw)
+        expected_items = _parse_expected(expected)
         return output in expected_items
 
     is_in.__name__ = "is_in"
