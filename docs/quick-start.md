@@ -55,9 +55,35 @@ async def task(example) -> list[str]:
     return result["retrieved_titles"]
 ```
 
-## Step 4 — Write an evaluator
+## Step 4 — Choose an evaluator
+
+You can write a custom evaluator function or use one of the built-in factories.
+
+### Using a built-in evaluator
 
 Create `experiments/rag_pipeline/top_k.py`:
+
+```python
+from evalwire.evaluators import make_top_k_evaluator
+
+top_k = make_top_k_evaluator(K=5)
+```
+
+All nine built-in factories are available from `evalwire.evaluators`:
+
+| Factory | Returns | When to use |
+|---|---|---|
+| `make_top_k_evaluator(K)` | `float` | Ranked retrieval — score by position |
+| `make_membership_evaluator()` | `bool` | Classification / routing label |
+| `make_exact_match_evaluator()` | `bool` | Single correct string answer |
+| `make_contains_evaluator()` | `bool` | Output must include a required phrase |
+| `make_regex_evaluator()` | `bool` | Output must match a regex pattern |
+| `make_json_match_evaluator(keys)` | `float` | Structured output key-value matching |
+| `make_schema_evaluator(schema)` | `bool` | JSON Schema conformance |
+| `make_numeric_tolerance_evaluator(atol, rtol)` | `bool` | Numeric answer within tolerance |
+| `make_llm_judge_evaluator(model, prompt, schema)` | `float\|bool` | LLM-as-a-judge |
+
+### Writing a custom evaluator
 
 ```python
 def top_k(output: list[str], expected: dict) -> float:
@@ -68,6 +94,30 @@ def top_k(output: list[str], expected: dict) -> float:
     hits = sum(1 for t in output if t in expected_titles)
     return hits / len(expected_titles)
 ```
+
+### Using the LLM judge
+
+```python
+from pydantic import BaseModel
+from langchain.chat_models import init_chat_model
+from evalwire.evaluators import make_llm_judge_evaluator
+
+class Verdict(BaseModel):
+    explanation: str
+    score: bool  # True = correct
+
+llm_judge = make_llm_judge_evaluator(
+    model=init_chat_model("gpt-4o-mini"),
+    prompt_template=(
+        "Output: {output}\n"
+        "Expected: {expected_output}\n"
+        "Is the output correct? Think step by step, then set score."
+    ),
+    output_schema=Verdict,
+)
+```
+
+Requires `pip install 'evalwire[llm-judge]'`.
 
 ## Step 5 — Run experiments
 
