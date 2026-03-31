@@ -5,8 +5,8 @@
 ---
 
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
-[![CI](https://github.com/zurfjereluhmie/evalwire/actions/workflows/ci.yml/badge.svg)](https://github.com/zurfjereluhmie/evalwire/actions/workflows/ci.yml)
-![PyPI - Version](https://img.shields.io/pypi/v/evalwire?cacheSeconds=0)
+[![CI](https://github.com/zurfjereluhmie/evalwire/actions/workflows/ci.yml/badge.svg)](https://github.com/zurfjereluhmie/evalwire/actions/workflows/ci.yml?cache-control=no-cache)
+![PyPI - Version](https://img.shields.io/pypi/v/evalwire?cache-control=no-cache)
 
 ## What it does
 
