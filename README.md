@@ -1,5 +1,7 @@
 # evalwire
 
+![evalwire logo](docs/assets/logo.svg)
+
 > Systematic, reproducible evaluation of LangGraph nodes and subgraphs against human-curated testsets, tracked in Arize Phoenix.
 
 ---
@@ -69,17 +71,17 @@ evalwire run --experiments experiments/
 All factories are importable from `evalwire.evaluators` and return a callable with
 signature `(output, expected: dict) -> float | bool`.
 
-| Factory | Returns | Use case |
-|---|---|---|
-| `make_top_k_evaluator(K=20)` | `float` | Position-weighted retrieval scoring |
-| `make_membership_evaluator()` | `bool` | Classification / routing label check |
-| `make_exact_match_evaluator()` | `bool` | Extractive QA, single ground-truth string |
-| `make_contains_evaluator()` | `bool` | Free-text generation, required phrase present |
-| `make_regex_evaluator()` | `bool` | Structured format validation (dates, IDs, …) |
-| `make_json_match_evaluator(keys)` | `float` | Tool-call / structured-output key matching |
-| `make_schema_evaluator(schema)` | `bool` | JSON Schema conformance |
-| `make_numeric_tolerance_evaluator(atol, rtol)` | `bool` | Math / calculation tasks with tolerance |
-| `make_llm_judge_evaluator(model, prompt, schema)` | `float\|bool` | LLM-as-a-judge with structured output |
+| Factory                                           | Returns       | Use case                                      |
+| ------------------------------------------------- | ------------- | --------------------------------------------- |
+| `make_top_k_evaluator(K=20)`                      | `float`       | Position-weighted retrieval scoring           |
+| `make_membership_evaluator()`                     | `bool`        | Classification / routing label check          |
+| `make_exact_match_evaluator()`                    | `bool`        | Extractive QA, single ground-truth string     |
+| `make_contains_evaluator()`                       | `bool`        | Free-text generation, required phrase present |
+| `make_regex_evaluator()`                          | `bool`        | Structured format validation (dates, IDs, …)  |
+| `make_json_match_evaluator(keys)`                 | `float`       | Tool-call / structured-output key matching    |
+| `make_schema_evaluator(schema)`                   | `bool`        | JSON Schema conformance                       |
+| `make_numeric_tolerance_evaluator(atol, rtol)`    | `bool`        | Math / calculation tasks with tolerance       |
+| `make_llm_judge_evaluator(model, prompt, schema)` | `float\|bool` | LLM-as-a-judge with structured output         |
 
 ### Example
 
