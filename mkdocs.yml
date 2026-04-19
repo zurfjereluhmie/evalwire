@@ -15,7 +15,6 @@ theme:
     - search.highlight
     - content.code.copy
   font:
-    text: League Spartan
     code: Cascadia Code
   palette:
     - scheme: default
