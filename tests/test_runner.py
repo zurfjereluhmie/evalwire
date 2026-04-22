@@ -143,6 +143,21 @@ class TestLoadAttribute:
         result = runner._load_attribute(py_file, "anything")
         assert result is None
 
+    def test_cleans_sys_modules_on_import_error(
+        self, tmp_path: Path, mock_phoenix_client: MagicMock
+    ):
+        """A broken module must not leak into sys.modules."""
+        import sys
+
+        py_file = tmp_path / "leaky.py"
+        py_file.write_text("raise RuntimeError('kaboom')\n")
+        runner = _make_runner(tmp_path, mock_phoenix_client)
+        module_name = f"_evalwire_exp_{py_file.parent.name}_{py_file.stem}"
+
+        result = runner._load_attribute(py_file, "anything")
+        assert result is None
+        assert module_name not in sys.modules
+
 
 class TestRun:
     def test_run_calls_run_experiment_for_each_discovered(

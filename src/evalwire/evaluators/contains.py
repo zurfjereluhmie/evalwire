@@ -8,9 +8,17 @@ from evalwire.evaluators._helpers import _parse_expected
 def make_contains_evaluator() -> Callable[[str, dict], bool]:
     """Return a substring-containment evaluator.
 
-    Checks whether the first value in ``expected["expected_output"]`` appears
-    as a substring of ``output``.  Useful for free-text generation tasks where
-    the answer must include a specific phrase or keyword.
+    Checks whether the **first** value in ``expected["expected_output"]``
+    appears as a substring of ``output``.  Useful for free-text generation
+    tasks where the answer must include a specific phrase or keyword.
+
+    .. note::
+
+       Only the first item of ``expected_output`` is checked.  If the
+       expected value contains pipe-delimited alternatives (e.g.
+       ``"phrase1|phrase2"``), only ``"phrase1"`` is used after splitting.
+       Use the ``membership`` evaluator if you need to check whether the
+       output matches any one of several accepted values.
 
     To test the reverse (output is a substring of the expected string), wrap
     the result with ``not``::
