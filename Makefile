@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install install-dev install-demo sync lint format typecheck test coverage check fix pre-commit docs docs-serve clean
+.PHONY: help install install-dev install-demo sync lint format typecheck test test-integration coverage check fix pre-commit docs docs-serve clean
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -27,8 +27,11 @@ format: ## Run ruff formatter (check only)
 typecheck: ## Run ty type checker
 	uv run ty check
 
-test: ## Run pytest
+test: ## Run pytest (unit tests only)
 	uv run pytest tests/ -q
+
+test-integration: ## Run integration tests (requires Phoenix)
+	uv run pytest tests/ -q -m integration
 
 coverage: ## Run pytest with coverage report
 	uv run pytest tests/ -q --cov=evalwire --cov-report=term-missing --cov-fail-under=85
