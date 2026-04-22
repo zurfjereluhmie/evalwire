@@ -64,6 +64,10 @@ filterwarnings = [
     "ignore::DeprecationWarning:alembic",
     "ignore::sqlalchemy.exc.SAWarning",
 ]
+markers = [
+    "integration: tests that require a running Phoenix instance (deselect with '-m not integration')",
+]
+addopts = "-m 'not integration'"
 
 [dependency-groups]
 dev = [
