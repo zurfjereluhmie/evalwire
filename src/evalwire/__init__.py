@@ -1,5 +1,8 @@
 """evalwire — systematic evaluation of LangGraph nodes with Arize Phoenix."""
 
+import logging
+from importlib.metadata import version
+
 from evalwire.evaluators import (
     make_contains_evaluator,
     make_exact_match_evaluator,
@@ -14,6 +17,10 @@ from evalwire.evaluators import (
 from evalwire.observability import setup_observability
 from evalwire.runner import ExperimentRunner
 from evalwire.uploader import DatasetUploader
+
+__version__ = version("evalwire")
+
+logging.getLogger("evalwire").addHandler(logging.NullHandler())
 
 __all__ = [
     "DatasetUploader",

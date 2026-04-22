@@ -22,6 +22,8 @@ def make_membership_evaluator() -> Callable[[str, dict], bool]:
     """
 
     def is_in(output: str, expected: dict) -> bool:
+        if output is None:
+            return False
         expected_items = _parse_expected(expected)
         return output in expected_items
 
