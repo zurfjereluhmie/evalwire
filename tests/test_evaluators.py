@@ -161,11 +161,6 @@ class TestMakeMembershipEvaluator:
         assert is_in("cms", {"expected_output": "elasticsearch"}) is False
 
 
-# ---------------------------------------------------------------------------
-# TestMakeExactMatchEvaluator
-# ---------------------------------------------------------------------------
-
-
 class TestMakeExactMatchEvaluator:
     def test_returns_callable_named_exact_match(self):
         fn = make_exact_match_evaluator()
@@ -212,11 +207,6 @@ class TestMakeExactMatchEvaluator:
         """When expected contains multiple items, only the first is the ground truth."""
         exact_match = make_exact_match_evaluator()
         assert exact_match("b", {"expected_output": ["a", "b"]}) is False
-
-
-# ---------------------------------------------------------------------------
-# TestMakeContainsEvaluator
-# ---------------------------------------------------------------------------
 
 
 class TestMakeContainsEvaluator:
@@ -270,11 +260,6 @@ class TestMakeContainsEvaluator:
         """Callers can negate to check output is not present."""
         contains = make_contains_evaluator()
         assert contains("safe text", {"expected_output": ["forbidden"]}) is not True
-
-
-# ---------------------------------------------------------------------------
-# TestMakeRegexEvaluator
-# ---------------------------------------------------------------------------
 
 
 class TestMakeRegexEvaluator:
@@ -337,11 +322,6 @@ class TestMakeRegexEvaluator:
         regex_match = make_regex_evaluator()
         with pytest.raises(re.error):
             regex_match("hello", {"expected_output": ["[invalid"]})
-
-
-# ---------------------------------------------------------------------------
-# TestMakeJsonMatchEvaluator
-# ---------------------------------------------------------------------------
 
 
 class TestMakeJsonMatchEvaluator:
@@ -435,10 +415,6 @@ class TestMakeJsonMatchEvaluator:
         ) == pytest.approx(1.0)
 
 
-# ---------------------------------------------------------------------------
-# TestMakeSchemaEvaluator
-# ---------------------------------------------------------------------------
-
 _SIMPLE_SCHEMA = {
     "type": "object",
     "properties": {
@@ -501,11 +477,6 @@ class TestMakeSchemaEvaluator:
         monkeypatch.setitem(sys.modules, "jsonschema", None)  # type: ignore[arg-type]
         with pytest.raises(ImportError, match="jsonschema"):
             make_schema_evaluator(_SIMPLE_SCHEMA)
-
-
-# ---------------------------------------------------------------------------
-# TestMakeNumericToleranceEvaluator
-# ---------------------------------------------------------------------------
 
 
 class TestMakeNumericToleranceEvaluator:
@@ -576,11 +547,6 @@ class TestMakeNumericToleranceEvaluator:
     def test_bare_string_expected(self):
         numeric_close = make_numeric_tolerance_evaluator(atol=0.01)
         assert numeric_close("2.718", {"expected_output": "2.72"}) is True
-
-
-# ---------------------------------------------------------------------------
-# TestMakeLlmJudgeEvaluator
-# ---------------------------------------------------------------------------
 
 
 def _make_mock_model(return_value: object) -> MagicMock:
@@ -688,8 +654,6 @@ class TestMakeLlmJudgeEvaluator:
         prompt_used = chain.invoke.call_args[0][0]
         assert "Expected: \n" in prompt_used
 
-    # -- on_error="silent" ---------------------------------------------------
-
     def test_on_error_silent_float_returns_zero(self):
         model = _make_mock_model(_FloatVerdict(1.0))
         chain = model.with_structured_output.return_value
@@ -715,8 +679,6 @@ class TestMakeLlmJudgeEvaluator:
         )
         result = llm_judge("output", {"expected_output": ["ref"]})
         assert result is False
-
-    # -- on_error="reraise" --------------------------------------------------
 
     def test_on_error_reraise_calls_callback_and_reraises(self):
         model = _make_mock_model(_FloatVerdict(1.0))
