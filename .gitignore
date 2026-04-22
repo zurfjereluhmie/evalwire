@@ -9,5 +9,22 @@ wheels/
 # Virtual environments
 .venv
 
+# Environment variables
 .env
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Linting / type-checking caches
+.ruff_cache/
+.mypy_cache/
+
+# Documentation build output
 site/
+
+# OS-specific
+.DS_Store
+Thumbs.db
