@@ -103,14 +103,17 @@ class TestBuildSubgraph:
         assert result["result"] == "done"
 
     def test_with_checkpointer(self, state_cls: type):
-        from langgraph.checkpoint.memory import InMemorySaver
+        mem_mod = pytest.importorskip(
+            "langgraph.checkpoint.memory",
+            reason="langgraph checkpoint not installed",
+        )
 
         from evalwire.langgraph import build_subgraph
 
         compiled = build_subgraph(
             nodes=[("n", lambda state: {"value": "x"})],
             state_cls=state_cls,
-            checkpointer=InMemorySaver(),
+            checkpointer=mem_mod.InMemorySaver(),
         )
         assert compiled is not None
 
