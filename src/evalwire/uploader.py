@@ -41,15 +41,17 @@ class DatasetUploader:
         self,
         csv_path: Path | str,
         phoenix_client: Client,
-        input_keys: list[str] = ["user_query"],  # noqa: B006
-        output_keys: list[str] = ["expected_output"],  # noqa: B006
+        input_keys: list[str] | None = None,
+        output_keys: list[str] | None = None,
         tag_column: str = "tags",
         delimiter: str = "|",
     ) -> None:
         self.csv_path = Path(csv_path)
         self.client = phoenix_client
-        self.input_keys = list(input_keys)
-        self.output_keys = list(output_keys)
+        self.input_keys = list(input_keys) if input_keys is not None else ["user_query"]
+        self.output_keys = (
+            list(output_keys) if output_keys is not None else ["expected_output"]
+        )
         self.tag_column = tag_column
         self.delimiter = delimiter
 
@@ -130,12 +132,10 @@ class DatasetUploader:
                 existing = self.client.datasets.get_dataset(dataset=name)
                 logger.info("Dataset %r already exists, skipping.", name)
                 return existing
-            except Exception:
-                logger.warning(
-                    "Could not fetch dataset %r; creating it instead (if this is "
-                    "not a 'not found' error, check your Phoenix endpoint and credentials).",
+            except ValueError:
+                logger.debug(
+                    "Dataset %r not found; creating it.",
                     name,
-                    exc_info=True,
                 )
             return self.client.datasets.create_dataset(
                 dataframe=df,
@@ -165,13 +165,10 @@ class DatasetUploader:
                 )
                 logger.debug("Appended %d examples to dataset %r.", len(df), name)
                 return dataset
-            except Exception:
-                logger.warning(
-                    "Could not append to dataset %r; creating it instead "
-                    "(if this is not a 'not found' error, check your Phoenix "
-                    "endpoint and credentials).",
+            except ValueError:
+                logger.debug(
+                    "Dataset %r not found; creating it.",
                     name,
-                    exc_info=True,
                 )
             return self.client.datasets.create_dataset(
                 dataframe=df,

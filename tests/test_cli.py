@@ -75,7 +75,7 @@ class TestUploadCommand:
         csv_file = tmp_path / "custom.csv"
         csv_file.write_text("q,ans,grp\nq1,a1,g1\n")
         client = _mock_client()
-        client.datasets.get_dataset.side_effect = Exception("not found")
+        client.datasets.get_dataset.side_effect = ValueError("not found")
         with patch("evalwire.cli._make_client", return_value=client):
             result = _runner().invoke(
                 main,

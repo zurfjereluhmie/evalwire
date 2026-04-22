@@ -3,6 +3,8 @@
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import pytest
+
 from evalwire.uploader import DatasetUploader
 
 
@@ -87,11 +89,21 @@ class TestUploadSkip:
     def test_uploads_when_dataset_does_not_exist(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.datasets.get_dataset.side_effect = ValueError("not found")
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         result = uploader.upload(on_exist="skip")
         assert mock_phoenix_client.datasets.create_dataset.called
         assert len(result) == 2
+
+    def test_non_not_found_error_propagates(
+        self, sample_csv: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.datasets.get_dataset.side_effect = RuntimeError(
+            "connection refused"
+        )
+        uploader = _make_uploader(sample_csv, mock_phoenix_client)
+        with pytest.raises(RuntimeError, match="connection refused"):
+            uploader.upload(on_exist="skip")
 
 
 class TestUploadOverwrite:
@@ -105,7 +117,7 @@ class TestUploadOverwrite:
     def test_overwrite_when_dataset_missing_still_creates(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.datasets.get_dataset.side_effect = ValueError("not found")
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         result = uploader.upload(on_exist="overwrite")
         assert mock_phoenix_client.datasets.create_dataset.called
@@ -123,7 +135,7 @@ class TestUploadAppend:
     def test_falls_back_to_create_when_dataset_missing(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
-        mock_phoenix_client.datasets.add_examples_to_dataset.side_effect = Exception(
+        mock_phoenix_client.datasets.add_examples_to_dataset.side_effect = ValueError(
             "not found"
         )
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
@@ -144,7 +156,7 @@ class TestCustomConfig:
             tag_column="group",
             delimiter=";",
         )
-        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.datasets.get_dataset.side_effect = ValueError("not found")
         result = uploader.upload(on_exist="skip")
         assert "g1" in result
         assert "g2" in result
@@ -157,6 +169,6 @@ class TestCustomConfig:
             phoenix_client=mock_phoenix_client,
             tag_column="category",
         )
-        mock_phoenix_client.datasets.get_dataset.side_effect = Exception("not found")
+        mock_phoenix_client.datasets.get_dataset.side_effect = ValueError("not found")
         result = uploader.upload(on_exist="skip")
         assert "cat1" in result
