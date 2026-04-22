@@ -11,8 +11,9 @@ def make_schema_evaluator(schema: dict) -> Callable[[str, dict], bool]:
     Schema dict using ``jsonschema``.  Useful for asserting that LLM outputs
     conform to a declared schema regardless of the specific values produced.
 
-    The JSON schema is bound at factory-creation time so the same validator
-    can be reused across many evaluation rows without re-compiling.
+    The JSON schema and validator are both bound at factory-creation time so
+    the same validator can be reused across many evaluation rows without
+    re-compiling or re-importing.
 
     Parameters
     ----------
@@ -37,27 +38,24 @@ def make_schema_evaluator(schema: dict) -> Callable[[str, dict], bool]:
 
             pip install 'jsonschema>=4.0'
     """
+    try:
+        import jsonschema
+    except ImportError as exc:
+        raise ImportError(
+            "jsonschema is required to use make_schema_evaluator. "
+            "Install it with: pip install 'jsonschema>=4.0'"
+        ) from exc
+
+    validator = jsonschema.Draft7Validator(schema)
 
     def schema_valid(output: str, expected: dict) -> bool:  # noqa: ARG001
         if output is None:
             return False
         try:
-            import jsonschema
-        except ImportError as exc:
-            raise ImportError(
-                "jsonschema is required to use make_schema_evaluator. "
-                "Install it with: pip install 'jsonschema>=4.0'"
-            ) from exc
-
-        try:
             instance = json.loads(output)
         except (json.JSONDecodeError, TypeError):
             return False
-        try:
-            jsonschema.validate(instance=instance, schema=schema)
-        except jsonschema.ValidationError:
-            return False
-        return True
+        return validator.is_valid(instance)
 
     schema_valid.__name__ = "schema_valid"
     return schema_valid
