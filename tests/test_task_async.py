@@ -7,18 +7,9 @@ return the expected value without requiring a running Phoenix experiment loop.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-if TYPE_CHECKING:
-    pass
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 
 def _make_example(input_: dict, output: dict | None = None) -> MagicMock:
@@ -27,11 +18,6 @@ def _make_example(input_: dict, output: dict | None = None) -> MagicMock:
     ex.input = input_
     ex.output = output or {}
     return ex
-
-
-# ---------------------------------------------------------------------------
-# Tests: async task callable contract
-# ---------------------------------------------------------------------------
 
 
 class TestAsyncTaskCallable:
@@ -92,11 +78,6 @@ class TestAsyncTaskCallable:
         example = _make_example({"user_query": "anything"})
         with pytest.raises(ValueError, match="retrieval failed"):
             await task(example)
-
-
-# ---------------------------------------------------------------------------
-# Tests: invoke_node directly (exercises the async path in evalwire.langgraph)
-# ---------------------------------------------------------------------------
 
 
 class TestInvokeNodeAsync:

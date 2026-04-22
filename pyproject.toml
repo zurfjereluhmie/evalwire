@@ -54,6 +54,16 @@ packages = ["src/evalwire"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning:ldap3",
+    "ignore::DeprecationWarning:phoenix.evals",
+    "ignore::DeprecationWarning:phoenix.server",
+    "ignore::DeprecationWarning:phoenix.session",
+    "ignore::DeprecationWarning:strawberry",
+    "ignore::DeprecationWarning:pydantic",
+    "ignore::DeprecationWarning:alembic",
+    "ignore::sqlalchemy.exc.SAWarning",
+]
 
 [dependency-groups]
 dev = [
