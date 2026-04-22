@@ -1,11 +1,12 @@
 """Tests for evalwire.runner.ExperimentRunner."""
 
+import threading
 from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
 
-from evalwire.runner import ExperimentRunner
+from evalwire.runner import ExperimentRunner, _get_thread_event_loop
 
 
 def _make_runner(
@@ -308,3 +309,71 @@ class TestRun:
         # "RuntimeError: Event loop is closed".
         assert wrapped(example=object()) == "ok"
         assert wrapped(example=object()) == "ok"  # must not raise
+
+
+class TestConcurrentExecution:
+    def test_concurrent_experiments_all_complete(
+        self, experiments_dir: Path, mock_phoenix_client: MagicMock
+    ):
+        """With concurrency=2, all experiments should still complete."""
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client, concurrency=2)
+        results = runner.run()
+        assert len(results) == 2
+        assert mock_phoenix_client.experiments.run_experiment.call_count == 2
+
+    def test_concurrent_experiments_with_async_tasks(
+        self, tmp_path: Path, mock_phoenix_client: MagicMock
+    ):
+        """Async tasks run concurrently without event loop conflicts."""
+        base = tmp_path / "experiments"
+        base.mkdir()
+
+        for i in range(3):
+            exp = base / f"exp_{i}"
+            exp.mkdir()
+            (exp / "task.py").write_text(
+                f"async def task(example): return 'result_{i}'\n"
+            )
+
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(base, mock_phoenix_client, concurrency=3)
+        results = runner.run()
+        assert len(results) == 3
+
+
+class TestGetThreadEventLoop:
+    def test_returns_event_loop(self):
+        loop = _get_thread_event_loop()
+        assert loop is not None
+        assert not loop.is_closed()
+
+    def test_returns_same_loop_on_repeated_calls(self):
+        loop1 = _get_thread_event_loop()
+        loop2 = _get_thread_event_loop()
+        assert loop1 is loop2
+
+    def test_creates_new_loop_if_closed(self):
+        loop1 = _get_thread_event_loop()
+        loop1.close()
+        loop2 = _get_thread_event_loop()
+        assert loop2 is not loop1
+        assert not loop2.is_closed()
+
+    def test_different_threads_get_different_loops(self):
+        loops: dict[str, object] = {}
+        barrier = threading.Barrier(2)
+
+        def worker(name: str) -> None:
+            loop = _get_thread_event_loop()
+            loops[name] = loop
+            barrier.wait()
+
+        t1 = threading.Thread(target=worker, args=("a",))
+        t2 = threading.Thread(target=worker, args=("b",))
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+
+        assert loops["a"] is not loops["b"]
