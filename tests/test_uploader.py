@@ -107,19 +107,26 @@ class TestUploadSkip:
 
 
 class TestUploadOverwrite:
-    def test_always_calls_upload_dataset(
+    def test_deletes_existing_then_creates(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
+        existing = MagicMock()
+        existing.id = "ds-123"
+        mock_phoenix_client.datasets.get_dataset.return_value = existing
+        mock_response = MagicMock()
+        mock_phoenix_client.datasets._client.delete.return_value = mock_response
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="overwrite")
-        assert mock_phoenix_client.datasets.create_dataset.called
+        mock_phoenix_client.datasets._client.delete.assert_called()
+        mock_phoenix_client.datasets.create_dataset.assert_called()
 
-    def test_overwrite_when_dataset_missing_still_creates(
+    def test_creates_directly_when_dataset_missing(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
         mock_phoenix_client.datasets.get_dataset.side_effect = ValueError("not found")
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         result = uploader.upload(on_exist="overwrite")
+        mock_phoenix_client.datasets._client.delete.assert_not_called()
         assert mock_phoenix_client.datasets.create_dataset.called
         assert len(result) == 2
 

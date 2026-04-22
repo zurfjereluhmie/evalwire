@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
+from urllib.parse import quote
 
 import pandas as pd
 
@@ -145,9 +146,12 @@ class DatasetUploader:
             )
 
         elif on_exist == "overwrite":
-            # Phoenix datasets are versioned; create_dataset with an existing name
-            # adds a new version rather than replacing the dataset object, so a
-            # delete step is not needed (and no delete API exists in Phoenix >=13).
+            try:
+                existing = self.client.datasets.get_dataset(dataset=name)
+                self._delete_dataset(existing.id)
+                logger.info("Deleted existing dataset %r; re-creating.", name)
+            except ValueError:
+                logger.debug("Dataset %r not found; creating it.", name)
             return self.client.datasets.create_dataset(
                 dataframe=df,
                 name=name,
@@ -176,3 +180,15 @@ class DatasetUploader:
                 input_keys=self.input_keys,
                 output_keys=self.output_keys,
             )
+
+    def _delete_dataset(self, dataset_id: str) -> None:
+        """Delete a dataset via the Phoenix REST API.
+
+        The Phoenix Python client does not expose a delete method, but the
+        server supports ``DELETE /v1/datasets/{id}``.
+        """
+        response = self.client.datasets._client.delete(
+            url=f"v1/datasets/{quote(dataset_id)}",
+            headers={"accept": "application/json"},
+        )
+        response.raise_for_status()
