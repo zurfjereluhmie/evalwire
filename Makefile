@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install install-dev install-demo sync lint format typecheck test check fix pre-commit docs docs-serve clean
+.PHONY: help install install-dev install-demo sync lint format typecheck test coverage check fix pre-commit docs docs-serve clean
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -29,6 +29,9 @@ typecheck: ## Run ty type checker
 
 test: ## Run pytest
 	uv run pytest tests/ -q
+
+coverage: ## Run pytest with coverage report
+	uv run pytest tests/ -q --cov=evalwire --cov-report=term-missing --cov-fail-under=85
 
 check: lint format typecheck test ## Run all checks (lint, format, typecheck, test)
 
