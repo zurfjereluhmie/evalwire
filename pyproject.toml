@@ -69,12 +69,19 @@ markers = [
 ]
 addopts = "-m 'not integration'"
 
+[tool.mutmut]
+paths_to_mutate = ["src/evalwire/"]
+pytest_add_cli_args_test_selection = ["tests/"]
+pytest_add_cli_args = ["--ignore=tests/test_evaluators_property.py", "--ignore=tests/integration"]
+do_not_mutate = ["*__init__.py", "*cli.py"]
+
 [dependency-groups]
 dev = [
     "hypothesis>=6.152.1",
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.0",
     "mkdocstrings[python]>=0.25",
+    "mutmut>=3.5",
     "pre-commit>=4.5.1",
     "pytest>=8.0",
     "pytest-asyncio>=0.23",

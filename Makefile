@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install install-dev install-demo sync lint format typecheck test test-integration coverage check fix pre-commit docs docs-serve clean
+.PHONY: help install install-dev install-demo sync lint format typecheck test test-integration coverage mutate check fix pre-commit docs docs-serve clean
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -35,6 +35,9 @@ test-integration: ## Run integration tests (requires Phoenix)
 
 coverage: ## Run pytest with coverage report
 	uv run pytest tests/ -q --cov=evalwire --cov-report=term-missing --cov-fail-under=85
+
+mutate: ## Run mutation testing with mutmut
+	uv run mutmut run
 
 check: lint format typecheck test ## Run all checks (lint, format, typecheck, test)
 

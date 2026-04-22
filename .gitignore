@@ -17,6 +17,7 @@ wheels/
 .coverage
 .coverage.*
 htmlcov/
+mutants/
 
 # Linting / type-checking caches
 .ruff_cache/
