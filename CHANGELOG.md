@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.3.1...v0.4.0) (2026-04-23)
+
+
+### Features
+
+* add logo SVG and update theme colors in mkdocs configuration ([#22](https://github.com/zurfjereluhmie/evalwire/issues/22)) ([67f44a9](https://github.com/zurfjereluhmie/evalwire/commit/67f44a93a9bc3f3aa51c463ea32a96264b62a04b))
+
+
+### Bug Fixes
+
+* enhance package typing, logging, and schema evaluation ([#28](https://github.com/zurfjereluhmie/evalwire/issues/28)) ([2a73529](https://github.com/zurfjereluhmie/evalwire/commit/2a735296a4f4eabdd7f82581667987f513360ff2))
+* loosen langgraph version pin from ==1.1.6 to &gt;=1.1,&lt;2 ([#32](https://github.com/zurfjereluhmie/evalwire/issues/32)) ([ebab441](https://github.com/zurfjereluhmie/evalwire/commit/ebab441141c01ccd07cc9d533f76f95f8d7718d9))
+* overwrite mode now deletes existing dataset before re-creating ([#39](https://github.com/zurfjereluhmie/evalwire/issues/39)) ([eab726c](https://github.com/zurfjereluhmie/evalwire/commit/eab726c873a6a3fa8d314376e9ca00f7ba9b4b4c))
+* resolve mutable defaults, narrow exception handling, and sys.modules leak ([#33](https://github.com/zurfjereluhmie/evalwire/issues/33)) ([788c642](https://github.com/zurfjereluhmie/evalwire/commit/788c642bbde795291f947110be1c653d89f322b9))
+
 ## [0.3.1](https://github.com/zurfjereluhmie/evalwire/compare/v0.3.0...v0.3.1) (2026-03-31)
 
 
