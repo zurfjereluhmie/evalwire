@@ -49,7 +49,7 @@ pre-commit: ## Run all pre-commit hooks against all files
 	uv run pre-commit run --all-files
 
 clean: ## Remove build artifacts and caches
-	rm -rf dist .pytest_cache .ruff_cache site
+	rm -rf dist .pytest_cache .ruff_cache site .hypothesis mutants .coverage
 	find . -type d -name __pycache__ -exec rm -rf {} +
 
 docs: ## Build HTML documentation into site/
