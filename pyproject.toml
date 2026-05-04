@@ -80,6 +80,7 @@ do_not_mutate = ["*__init__.py", "*cli.py"]
 dev = [
     "hypothesis>=6.152.1",
     "mkdocs>=1.6.1",
+    "mkdocs-include-markdown-plugin>=7.2.2",
     "mkdocs-material>=9.0",
     "mkdocstrings[python]>=0.25",
     "mutmut>=3.5",
