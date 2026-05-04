@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/zurfjereluhmie/evalwire/compare/v0.4.0...v0.4.1) (2026-05-04)
+
+
+### Documentation
+
+* add concepts, guides, configuration, and troubleshooting pages ([#48](https://github.com/zurfjereluhmie/evalwire/issues/48)) ([8b1af18](https://github.com/zurfjereluhmie/evalwire/commit/8b1af188f3cb7a458289cf22a16282c9931be140))
+
 ## [0.4.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.3.1...v0.4.0) (2026-04-23)
 
 
