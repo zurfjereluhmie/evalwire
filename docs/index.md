@@ -27,5 +27,10 @@
 
 ## Navigation
 
-- [Quick Start](quick-start.md) — get up and running in minutes
-- [API Reference](api/index.md) — full module documentation
+- [Quick Start](quick-start.md): get up and running in minutes
+- [Concepts](concepts.md): understand datasets, experiments, tasks, and evaluators
+- [Guides: Writing Custom Evaluators](guides/custom-evaluators.md): evaluator contract, patterns, and best practices
+- [Configuration](configuration.md): full `evalwire.toml` reference
+- [Troubleshooting](troubleshooting.md): common errors and fixes
+- [API Reference](api/index.md): full module documentation
+- [Changelog](changelog.md): version history

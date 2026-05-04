@@ -1,15 +1,12 @@
 # evalwire.evaluators
 
-Built-in evaluator factories. Each factory returns a callable with the standard
-evalwire evaluator signature:
+Built-in evaluator factories. Each factory returns a callable with the standard evalwire evaluator signature:
 
 ```python
-def evaluator(output: Any, expected: dict) -> float | bool: ...
+def evaluator(output, expected: dict) -> float | bool: ...
 ```
 
-The `expected` dict always contains at minimum an `"expected_output"` key whose
-value is parsed by the shared `_parse_expected` helper (handles plain strings,
-Python-literal strings such as `"['a','b']"`, and lists).
+The `expected` dict always contains at minimum an `"expected_output"` key whose value is parsed by the shared `_parse_expected` helper (handles plain strings, Python-literal strings such as `"['a','b']"`, and pipe-delimited strings).
 
 All factories are importable directly from `evalwire.evaluators`:
 
@@ -26,6 +23,8 @@ from evalwire.evaluators import (
     make_llm_judge_evaluator,
 )
 ```
+
+For a guide on writing your own evaluators, see [Writing Custom Evaluators](../guides/custom-evaluators.md).
 
 ---
 
