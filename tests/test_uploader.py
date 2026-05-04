@@ -86,6 +86,18 @@ class TestUploadSkip:
         uploader.upload(on_exist="skip")
         mock_phoenix_client.datasets.create_dataset.assert_not_called()
 
+    def test_get_dataset_called_with_correct_name(
+        self, sample_csv: Path, mock_phoenix_client: MagicMock
+    ):
+        uploader = _make_uploader(sample_csv, mock_phoenix_client)
+        uploader.upload(on_exist="skip")
+        called_names = {
+            c.kwargs.get("dataset") or c.args[0]
+            for c in mock_phoenix_client.datasets.get_dataset.call_args_list
+        }
+        assert "es_search" in called_names
+        assert "source_router" in called_names
+
     def test_uploads_when_dataset_does_not_exist(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
     ):
@@ -94,6 +106,38 @@ class TestUploadSkip:
         result = uploader.upload(on_exist="skip")
         assert mock_phoenix_client.datasets.create_dataset.called
         assert len(result) == 2
+
+    def test_create_dataset_called_with_correct_args(
+        self, sample_csv: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.datasets.get_dataset.side_effect = ValueError("not found")
+        uploader = _make_uploader(sample_csv, mock_phoenix_client)
+        uploader.upload(on_exist="skip")
+        calls = mock_phoenix_client.datasets.create_dataset.call_args_list
+        assert len(calls) == 2
+        called_names = {c.kwargs["name"] for c in calls}
+        assert called_names == {"es_search", "source_router"}
+        for c in calls:
+            assert c.kwargs["input_keys"] == ["user_query"]
+            assert c.kwargs["output_keys"] == ["expected_output"]
+            assert c.kwargs["dataframe"] is not None
+
+    def test_fallback_create_called_with_correct_args(
+        self, sample_csv: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.datasets.add_examples_to_dataset.side_effect = ValueError(
+            "not found"
+        )
+        uploader = _make_uploader(sample_csv, mock_phoenix_client)
+        uploader.upload(on_exist="append")
+        calls = mock_phoenix_client.datasets.create_dataset.call_args_list
+        assert len(calls) == 2
+        called_names = {c.kwargs["name"] for c in calls}
+        assert called_names == {"es_search", "source_router"}
+        for c in calls:
+            assert c.kwargs["input_keys"] == ["user_query"]
+            assert c.kwargs["output_keys"] == ["expected_output"]
+            assert c.kwargs["dataframe"] is not None
 
     def test_non_not_found_error_propagates(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
@@ -113,12 +157,39 @@ class TestUploadOverwrite:
         existing = MagicMock()
         existing.id = "ds-123"
         mock_phoenix_client.datasets.get_dataset.return_value = existing
-        mock_response = MagicMock()
-        mock_phoenix_client.datasets._client.delete.return_value = mock_response
+        mock_phoenix_client.datasets._client.delete.return_value = MagicMock()
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="overwrite")
         mock_phoenix_client.datasets._client.delete.assert_called()
         mock_phoenix_client.datasets.create_dataset.assert_called()
+
+    def test_delete_called_with_correct_url(
+        self, sample_csv: Path, mock_phoenix_client: MagicMock
+    ):
+        existing = MagicMock()
+        existing.id = "ds-123"
+        mock_phoenix_client.datasets.get_dataset.return_value = existing
+        mock_phoenix_client.datasets._client.delete.return_value = MagicMock()
+        uploader = _make_uploader(sample_csv, mock_phoenix_client)
+        uploader.upload(on_exist="overwrite")
+        delete_calls = mock_phoenix_client.datasets._client.delete.call_args_list
+        delete_urls = {
+            c.args[0] if c.args else c.kwargs.get("url") for c in delete_calls
+        }
+        assert "v1/datasets/ds-123" in delete_urls
+
+    def test_delete_called_with_accept_header(
+        self, sample_csv: Path, mock_phoenix_client: MagicMock
+    ):
+        existing = MagicMock()
+        existing.id = "ds-123"
+        mock_phoenix_client.datasets.get_dataset.return_value = existing
+        mock_phoenix_client.datasets._client.delete.return_value = MagicMock()
+        uploader = _make_uploader(sample_csv, mock_phoenix_client)
+        uploader.upload(on_exist="overwrite")
+        delete_calls = mock_phoenix_client.datasets._client.delete.call_args_list
+        for c in delete_calls:
+            assert c.kwargs.get("headers") == {"accept": "application/json"}
 
     def test_creates_directly_when_dataset_missing(
         self, sample_csv: Path, mock_phoenix_client: MagicMock
@@ -130,6 +201,21 @@ class TestUploadOverwrite:
         assert mock_phoenix_client.datasets.create_dataset.called
         assert len(result) == 2
 
+    def test_create_dataset_called_with_correct_args_on_overwrite(
+        self, sample_csv: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.datasets.get_dataset.side_effect = ValueError("not found")
+        uploader = _make_uploader(sample_csv, mock_phoenix_client)
+        uploader.upload(on_exist="overwrite")
+        calls = mock_phoenix_client.datasets.create_dataset.call_args_list
+        assert len(calls) == 2
+        called_names = {c.kwargs["name"] for c in calls}
+        assert called_names == {"es_search", "source_router"}
+        for c in calls:
+            assert c.kwargs["input_keys"] == ["user_query"]
+            assert c.kwargs["output_keys"] == ["expected_output"]
+            assert c.kwargs["dataframe"] is not None
+
 
 class TestUploadAppend:
     def test_calls_append_to_dataset_when_dataset_exists(
@@ -138,6 +224,19 @@ class TestUploadAppend:
         uploader = _make_uploader(sample_csv, mock_phoenix_client)
         uploader.upload(on_exist="append")
         assert mock_phoenix_client.datasets.add_examples_to_dataset.called
+
+    def test_append_called_with_correct_args(
+        self, sample_csv: Path, mock_phoenix_client: MagicMock
+    ):
+        uploader = _make_uploader(sample_csv, mock_phoenix_client)
+        uploader.upload(on_exist="append")
+        calls = mock_phoenix_client.datasets.add_examples_to_dataset.call_args_list
+        called_names = {c.kwargs["dataset"] for c in calls}
+        assert called_names == {"es_search", "source_router"}
+        for c in calls:
+            assert c.kwargs["input_keys"] == ["user_query"]
+            assert c.kwargs["output_keys"] == ["expected_output"]
+            assert c.kwargs["dataframe"] is not None
 
     def test_falls_back_to_create_when_dataset_missing(
         self, sample_csv: Path, mock_phoenix_client: MagicMock

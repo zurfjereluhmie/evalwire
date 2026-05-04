@@ -66,6 +66,24 @@ class TestParseExpected:
         result = _parse_expected({"expected_output": "True"})
         assert result == [True]
 
+    def test_scalar_float_from_literal_eval_is_wrapped_in_list(self):
+        """ast.literal_eval('2.72') returns float 2.72; must be wrapped in a list."""
+        result = _parse_expected({"expected_output": "2.72"})
+        assert result == [2.72]
+        assert isinstance(result, list)
+
+    def test_scalar_int_from_literal_eval_is_wrapped_in_list(self):
+        """ast.literal_eval('0') returns int 0; must be wrapped in a list."""
+        result = _parse_expected({"expected_output": "0"})
+        assert result == [0]
+        assert isinstance(result, list)
+
+    def test_default_value_when_key_missing_is_empty_list(self):
+        """Missing key must return [] not raise and not return None."""
+        result = _parse_expected({})
+        assert result == []
+        assert isinstance(result, list)
+
 
 class TestZeroValueFor:
     def test_bool_returns_false(self):
