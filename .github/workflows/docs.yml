@@ -13,8 +13,8 @@ concurrency:
 
 permissions:
   contents: read
-  pages: write       # needed by actions/deploy-pages
-  id-token: write    # needed by actions/deploy-pages (OIDC)
+  pages: write # needed by actions/deploy-pages
+  id-token: write # needed by actions/deploy-pages (OIDC)
 
 jobs:
   changes:
@@ -32,6 +32,7 @@ jobs:
               - mkdocs.yml
               - src/**
               - .github/workflows/docs.yml
+              - CHANGELOG.md
 
   build:
     name: Build MkDocs site
