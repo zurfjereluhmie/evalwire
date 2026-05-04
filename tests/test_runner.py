@@ -39,6 +39,21 @@ class TestDiscover:
         found = runner._discover(None)
         assert found == []
 
+    def test_discover_skips_files_in_experiments_dir(
+        self, tmp_path: Path, mock_phoenix_client: MagicMock
+    ):
+        base = tmp_path / "experiments"
+        base.mkdir()
+        (base / "aaa_readme.txt").write_text("not an experiment")
+        exp = base / "my_exp"
+        exp.mkdir()
+        (exp / "task.py").write_text("async def task(example): return 'ok'\n")
+        runner = _make_runner(base, mock_phoenix_client)
+        found = runner._discover(None)
+        names = [name for name, _, _ in found]
+        assert "my_exp" in names
+        assert len(found) == 1
+
     def test_discover_filters_by_name(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
@@ -170,6 +185,20 @@ class TestRun:
         assert mock_phoenix_client.experiments.run_experiment.call_count == 2
         assert len(results) == 2
 
+    def test_run_experiment_called_with_required_args(
+        self, experiments_dir: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        runner.run(names=["es_search"])
+        call_kwargs = mock_phoenix_client.experiments.run_experiment.call_args.kwargs
+        assert "dataset" in call_kwargs
+        assert callable(call_kwargs["task"])
+        assert isinstance(call_kwargs["evaluators"], list)
+        assert len(call_kwargs["evaluators"]) == 1
+        assert "experiment_name" in call_kwargs
+        assert "experiment_metadata" in call_kwargs
+
     def test_run_passes_dry_run_flag(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
@@ -178,6 +207,15 @@ class TestRun:
         runner.run()
         for c in mock_phoenix_client.experiments.run_experiment.call_args_list:
             assert c.kwargs.get("dry_run") == 3
+
+    def test_run_default_dry_run_is_false(
+        self, experiments_dir: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        runner.run(names=["es_search"])
+        call_kwargs = mock_phoenix_client.experiments.run_experiment.call_args.kwargs
+        assert call_kwargs["dry_run"] is False
 
     def test_run_uses_custom_prefix(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
@@ -188,6 +226,17 @@ class TestRun:
         for c in mock_phoenix_client.experiments.run_experiment.call_args_list:
             assert c.kwargs["experiment_name"].startswith("ci_")
 
+    def test_run_default_prefix_is_eval(
+        self, experiments_dir: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        runner.run(names=["es_search"])
+        exp_name = mock_phoenix_client.experiments.run_experiment.call_args.kwargs[
+            "experiment_name"
+        ]
+        assert exp_name.startswith("eval_")
+
     def test_run_attaches_metadata(
         self, experiments_dir: Path, mock_phoenix_client: MagicMock
     ):
@@ -196,6 +245,42 @@ class TestRun:
         runner.run(metadata={"branch": "main"})
         for c in mock_phoenix_client.experiments.run_experiment.call_args_list:
             assert c.kwargs["experiment_metadata"]["branch"] == "main"
+
+    def test_run_metadata_always_includes_run_by_evalwire(
+        self, experiments_dir: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        runner.run(names=["es_search"])
+        meta = mock_phoenix_client.experiments.run_experiment.call_args.kwargs[
+            "experiment_metadata"
+        ]
+        assert meta.get("run_by") == "evalwire"
+
+    def test_run_metadata_includes_dataset_name(
+        self, experiments_dir: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        runner.run(names=["es_search"])
+        meta = mock_phoenix_client.experiments.run_experiment.call_args.kwargs[
+            "experiment_metadata"
+        ]
+        assert meta.get("dataset") == "es_search"
+
+    def test_get_dataset_called_with_experiment_name(
+        self, experiments_dir: Path, mock_phoenix_client: MagicMock
+    ):
+        mock_phoenix_client.experiments.run_experiment.return_value = MagicMock()
+        runner = _make_runner(experiments_dir, mock_phoenix_client)
+        runner.run(names=["es_search"])
+        get_dataset_calls = mock_phoenix_client.datasets.get_dataset.call_args_list
+        called_names = {
+            c.kwargs.get("dataset") or (c.args[0] if c.args else None)
+            for c in get_dataset_calls
+        }
+        assert "es_search" in called_names
+        assert None not in called_names
 
     def test_run_returns_empty_for_no_experiments(
         self, tmp_path: Path, mock_phoenix_client: MagicMock

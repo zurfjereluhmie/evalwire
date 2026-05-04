@@ -110,6 +110,17 @@ class TestMakeTopKEvaluator:
         score = top_k(["other_url"], {"expected_output": "some_url"})
         assert score == pytest.approx(0.0)
 
+    def test_none_output_returns_0(self):
+        top_k = make_top_k_evaluator(K=10)
+        assert top_k(None, {"expected_output": ["url-a"]}) == pytest.approx(0.0)  # ty: ignore[invalid-argument-type]
+
+    def test_default_k_controls_window(self):
+        """Default K=20: item at position 20 is outside the window and scores 0."""
+        top_k = make_top_k_evaluator()
+        output = [str(i) for i in range(25)]
+        assert top_k(output, {"expected_output": ["20"]}) == pytest.approx(0.0)
+        assert top_k(output, {"expected_output": ["19"]}) == pytest.approx(1 - 19 / 20)
+
 
 class TestMakeMembershipEvaluator:
     def test_returns_callable_named_is_in(self):
@@ -159,6 +170,14 @@ class TestMakeMembershipEvaluator:
     def test_bare_string_expected_output_no_match(self):
         is_in = make_membership_evaluator()
         assert is_in("cms", {"expected_output": "elasticsearch"}) is False
+
+    def test_none_output_returns_false(self):
+        is_in = make_membership_evaluator()
+        assert is_in(None, {"expected_output": ["es_search"]}) is False  # ty: ignore[invalid-argument-type]
+
+    def test_none_output_not_in_empty_list(self):
+        is_in = make_membership_evaluator()
+        assert is_in(None, {"expected_output": []}) is False  # ty: ignore[invalid-argument-type]
 
 
 class TestMakeExactMatchEvaluator:
@@ -405,6 +424,30 @@ class TestMakeJsonMatchEvaluator:
         json_match = make_json_match_evaluator()
         assert json_match('{"a": 1}', {}) == pytest.approx(0.0)
 
+    def test_invalid_expected_json_returns_0(self):
+        """When expected_output parses but is not valid JSON, score must be 0.0 not 1.0."""
+        json_match = make_json_match_evaluator()
+        output = json.dumps({"a": 1})
+        assert json_match(output, {"expected_output": ["not-json"]}) == pytest.approx(
+            0.0
+        )
+
+    def test_non_object_expected_json_returns_0(self):
+        json_match = make_json_match_evaluator()
+        output = json.dumps({"a": 1})
+        assert json_match(output, {"expected_output": ["[1, 2, 3]"]}) == pytest.approx(
+            0.0
+        )
+
+    def test_empty_keys_filter_returns_0(self):
+        """Explicitly passing keys=[] means nothing is checked — score must be 0.0."""
+        json_match = make_json_match_evaluator(keys=[])
+        output = json.dumps({"a": 1})
+        expected_json = json.dumps({"a": 1})
+        assert json_match(
+            output, {"expected_output": [expected_json]}
+        ) == pytest.approx(0.0)
+
     def test_extra_keys_in_output_are_ignored(self):
         """Output may contain more keys than expected; only expected keys are scored."""
         json_match = make_json_match_evaluator()
@@ -547,6 +590,22 @@ class TestMakeNumericToleranceEvaluator:
     def test_bare_string_expected(self):
         numeric_close = make_numeric_tolerance_evaluator(atol=0.01)
         assert numeric_close("2.718", {"expected_output": "2.72"}) is True
+
+    def test_default_atol_boundary_exactly_within(self):
+        """A difference of exactly 1e-6 must pass with the default atol=1e-6."""
+        numeric_close = make_numeric_tolerance_evaluator()
+        assert numeric_close("1.000001", {"expected_output": ["1.0"]}) is True
+
+    def test_default_atol_boundary_just_outside(self):
+        """A difference clearly above 1e-6 must fail with the default atol=1e-6."""
+        numeric_close = make_numeric_tolerance_evaluator()
+        assert numeric_close("1.001", {"expected_output": ["1.0"]}) is False
+
+    def test_default_rtol_is_zero(self):
+        """Default rtol=0.0 means relative tolerance contributes nothing.
+        A 1% difference fails when only the tiny default atol applies."""
+        numeric_close = make_numeric_tolerance_evaluator()
+        assert numeric_close("101.0", {"expected_output": ["100.0"]}) is False
 
 
 def _make_mock_model(return_value: object) -> MagicMock:
@@ -719,3 +778,27 @@ class TestMakeLlmJudgeEvaluator:
         llm_judge("a", {"expected_output": ["a"]})
         llm_judge("b", {"expected_output": ["b"]})
         model.with_structured_output.assert_called_once()
+
+    def test_with_structured_output_called_with_schema(self):
+        """The schema class is passed to with_structured_output at factory creation."""
+        model = _make_mock_model(_FloatVerdict(1.0))
+        make_llm_judge_evaluator(model, self.PROMPT, _FloatVerdict)  # ty: ignore[invalid-argument-type]
+        model.with_structured_output.assert_called_once_with(_FloatVerdict)
+
+    def test_missing_result_key_in_schema_uses_float_zero_as_default(self):
+        """When result_key is absent from model_fields, on_error=silent returns 0.0."""
+
+        class NoScoreField:
+            model_fields: dict = {}
+
+        model = _make_mock_model(None)
+        chain = model.with_structured_output.return_value
+        chain.invoke.side_effect = RuntimeError("fail")
+        llm_judge = make_llm_judge_evaluator(
+            model,
+            self.PROMPT,
+            NoScoreField,  # ty: ignore[invalid-argument-type]
+            on_error="silent",
+        )
+        result = llm_judge("x", {"expected_output": ["y"]})
+        assert result == pytest.approx(0.0)
