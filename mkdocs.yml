@@ -47,6 +47,11 @@ plugins:
 nav:
   - Home: index.md
   - Quick Start: quick-start.md
+  - Concepts: concepts.md
+  - Guides:
+      - Writing Custom Evaluators: guides/custom-evaluators.md
+  - Configuration: configuration.md
+  - Troubleshooting: troubleshooting.md
   - API Reference:
       - evalwire: api/index.md
       - Evaluators: api/evaluators.md
@@ -56,6 +61,7 @@ nav:
       - Config: api/config.md
       - CLI: api/cli.md
       - LangGraph: api/langgraph.md
+  - Changelog: changelog.md
 
 markdown_extensions:
   - pymdownx.highlight:
