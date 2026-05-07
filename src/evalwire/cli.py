@@ -1,4 +1,4 @@
-"""evalwire CLI — ``evalwire upload`` and ``evalwire run`` commands."""
+"""evalwire CLI — ``evalwire upload``, ``evalwire run``, ``evalwire export``, ``evalwire compare``, and ``evalwire report`` commands."""
 
 import sys
 from typing import Literal, cast
@@ -199,6 +199,104 @@ def run_cmd(
         click.echo(f"Completed {len(results)} experiment(s).")
     except SystemExit:
         sys.exit(1)
+    except click.UsageError:
+        raise
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(2)
+
+
+@main.command("export")
+@click.option(
+    "--experiment",
+    "experiment_id",
+    default=None,
+    help="Phoenix experiment ID.",
+)
+@click.option(
+    "--format",
+    "fmt",
+    type=click.Choice(["csv", "json"]),
+    default="csv",
+    show_default=True,
+    help="Output format.",
+)
+@click.option(
+    "--output",
+    "output_path",
+    default=None,
+    help="Destination file path.",
+)
+def export_cmd(
+    experiment_id: str | None,
+    fmt: str,
+    output_path: str | None,
+) -> None:
+    """Export experiment results to a CSV or JSON file."""
+    if not experiment_id:
+        raise click.UsageError("No experiment ID provided. Use --experiment.")
+    try:
+        from pathlib import Path as _Path
+
+        from evalwire.results import ResultCollector
+
+        client = _make_client()
+        rc = ResultCollector(client)
+        resolved_output = (
+            _Path(output_path) if output_path else _Path(f"{experiment_id}.{fmt}")
+        )
+        rc.export(experiment_id, format=fmt, path=resolved_output)  # ty: ignore[invalid-argument-type]
+        click.echo(f"Exported results to {resolved_output}")
+    except click.UsageError:
+        raise
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(2)
+
+
+@main.command("compare")
+@click.argument("experiment_id_a")
+@click.argument("experiment_id_b")
+def compare_cmd(experiment_id_a: str, experiment_id_b: str) -> None:
+    """Compare two experiment runs by their mean evaluator scores."""
+    try:
+        from evalwire.results import ResultCollector
+
+        client = _make_client()
+        rc = ResultCollector(client)
+        comparison = rc.compare(experiment_id_a, experiment_id_b)
+
+        click.echo(f"Comparing {experiment_id_a!r} vs {experiment_id_b!r}")
+        click.echo("")
+        for name, info in sorted(comparison.items()):
+            delta = info["delta"]
+            sign = "+" if delta >= 0 else ""
+            click.echo(
+                f"  {name}: {info['score_a']:.4f} → {info['score_b']:.4f}  ({sign}{delta:.4f})"
+            )
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(2)
+
+
+@main.command("report")
+@click.option(
+    "--experiment",
+    "experiment_id",
+    default=None,
+    help="Phoenix experiment ID.",
+)
+def report_cmd(experiment_id: str | None) -> None:
+    """Generate a markdown summary report for an experiment."""
+    if not experiment_id:
+        raise click.UsageError("No experiment ID provided. Use --experiment.")
+    try:
+        from evalwire.results import ResultCollector
+
+        client = _make_client()
+        rc = ResultCollector(client)
+        report = rc.report(experiment_id)
+        click.echo(report)
     except click.UsageError:
         raise
     except Exception as exc:

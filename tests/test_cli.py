@@ -207,3 +207,138 @@ class TestRunCommand:
         assert result_upload.exit_code == 0
         result_run = _runner().invoke(main, ["run", "--help"])
         assert result_run.exit_code == 0
+
+
+def _make_ran_experiment(experiment_id="exp-1", scores=None):
+    """Return a mock RanExperiment-like dict."""
+    task_run = MagicMock()
+    task_run.id = "run-1"
+    task_run.output = "answer"
+    task_run.error = None
+
+    eval_runs = []
+    for name, score in (scores or {}).items():
+        ev = MagicMock()
+        ev.experiment_run_id = "run-1"
+        ev.name = name
+        ev.result = MagicMock()
+        ev.result.get = lambda k, default=None, _s=score: {"score": _s}.get(k, default)
+        ev.error = None
+        eval_runs.append(ev)
+
+    return {
+        "experiment_id": experiment_id,
+        "task_runs": [task_run],
+        "evaluation_runs": eval_runs,
+        "dataset_id": "ds-1",
+        "dataset_version_id": "dv-1",
+        "experiment_metadata": {},
+        "project_name": None,
+    }
+
+
+class TestExportCommand:
+    def test_export_csv_exits_zero(self, tmp_path: Path):
+        ran = _make_ran_experiment(scores={"accuracy": 0.9})
+        client = _mock_client()
+        client.experiments.get_experiment.return_value = ran
+        out = tmp_path / "out.csv"
+        with patch("evalwire.cli._make_client", return_value=client):
+            result = _runner().invoke(
+                main,
+                [
+                    "export",
+                    "--experiment",
+                    "exp-1",
+                    "--format",
+                    "csv",
+                    "--output",
+                    str(out),
+                ],
+            )
+        assert result.exit_code == 0
+        assert out.exists()
+
+    def test_export_json_exits_zero(self, tmp_path: Path):
+        ran = _make_ran_experiment(scores={"accuracy": 0.9})
+        client = _mock_client()
+        client.experiments.get_experiment.return_value = ran
+        out = tmp_path / "out.json"
+        with patch("evalwire.cli._make_client", return_value=client):
+            result = _runner().invoke(
+                main,
+                [
+                    "export",
+                    "--experiment",
+                    "exp-1",
+                    "--format",
+                    "json",
+                    "--output",
+                    str(out),
+                ],
+            )
+        assert result.exit_code == 0
+        assert out.exists()
+
+    def test_export_missing_experiment_flag_exits_nonzero(self):
+        result = _runner().invoke(main, ["export"])
+        assert result.exit_code != 0
+
+    def test_export_not_found_experiment_exits_nonzero(self, tmp_path: Path):
+        client = _mock_client()
+        client.experiments.get_experiment.side_effect = ValueError("not found")
+        out = tmp_path / "out.csv"
+        with patch("evalwire.cli._make_client", return_value=client):
+            result = _runner().invoke(
+                main,
+                ["export", "--experiment", "missing", "--output", str(out)],
+            )
+        assert result.exit_code != 0
+
+
+class TestCompareCommand:
+    def test_compare_exits_zero(self):
+        ran_a = _make_ran_experiment("exp-a", scores={"accuracy": 0.8})
+        ran_b = _make_ran_experiment("exp-b", scores={"accuracy": 0.9})
+        client = _mock_client()
+        client.experiments.get_experiment.side_effect = lambda experiment_id: (
+            ran_a if experiment_id == "exp-a" else ran_b
+        )
+        with patch("evalwire.cli._make_client", return_value=client):
+            result = _runner().invoke(main, ["compare", "exp-a", "exp-b"])
+        assert result.exit_code == 0
+        assert "accuracy" in result.output
+
+    def test_compare_shows_delta(self):
+        ran_a = _make_ran_experiment("exp-a", scores={"accuracy": 0.8})
+        ran_b = _make_ran_experiment("exp-b", scores={"accuracy": 0.9})
+        client = _mock_client()
+        client.experiments.get_experiment.side_effect = lambda experiment_id: (
+            ran_a if experiment_id == "exp-a" else ran_b
+        )
+        with patch("evalwire.cli._make_client", return_value=client):
+            result = _runner().invoke(main, ["compare", "exp-a", "exp-b"])
+        assert (
+            "0.10" in result.output
+            or "+0.1" in result.output
+            or "delta" in result.output.lower()
+        )
+
+    def test_compare_missing_args_exits_nonzero(self):
+        result = _runner().invoke(main, ["compare"])
+        assert result.exit_code != 0
+
+
+class TestReportCommand:
+    def test_report_exits_zero(self):
+        ran = _make_ran_experiment(scores={"accuracy": 0.75})
+        client = _mock_client()
+        client.experiments.get_experiment.return_value = ran
+        with patch("evalwire.cli._make_client", return_value=client):
+            result = _runner().invoke(main, ["report", "--experiment", "exp-1"])
+        assert result.exit_code == 0
+        assert "accuracy" in result.output
+
+    def test_report_missing_experiment_flag_exits_nonzero(self):
+        result = _runner().invoke(main, ["report"])
+        assert result.exit_code != 0
