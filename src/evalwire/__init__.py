@@ -15,6 +15,7 @@ from evalwire.evaluators import (
     make_top_k_evaluator,
 )
 from evalwire.observability import setup_observability
+from evalwire.results import ResultCollector
 from evalwire.runner import ExperimentRunner
 from evalwire.uploader import DatasetUploader
 
@@ -25,6 +26,7 @@ logging.getLogger("evalwire").addHandler(logging.NullHandler())
 __all__ = [
     "DatasetUploader",
     "ExperimentRunner",
+    "ResultCollector",
     "make_contains_evaluator",
     "make_exact_match_evaluator",
     "make_json_match_evaluator",
