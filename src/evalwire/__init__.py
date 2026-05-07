@@ -1,4 +1,4 @@
-"""evalwire — systematic evaluation of LangGraph nodes with Arize Phoenix."""
+"""evalwire — evaluate any async callable with Arize Phoenix experiments."""
 
 import logging
 from importlib.metadata import version
