@@ -18,7 +18,6 @@ from evalwire.evaluators import (
     make_weighted_evaluator,
 )
 from evalwire.observability import setup_observability
-from evalwire.results import ResultCollector
 from evalwire.runner import ExperimentRunner
 from evalwire.uploader import DatasetUploader
 
@@ -29,7 +28,6 @@ logging.getLogger("evalwire").addHandler(logging.NullHandler())
 __all__ = [
     "DatasetUploader",
     "ExperimentRunner",
-    "ResultCollector",
     "make_all_pass_evaluator",
     "make_any_pass_evaluator",
     "make_contains_evaluator",
