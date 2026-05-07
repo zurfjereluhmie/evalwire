@@ -1,5 +1,10 @@
 """Built-in evaluator factories for evalwire."""
 
+from evalwire.evaluators.composition import (
+    make_all_pass_evaluator,
+    make_any_pass_evaluator,
+    make_weighted_evaluator,
+)
 from evalwire.evaluators.contains import make_contains_evaluator
 from evalwire.evaluators.exact_match import make_exact_match_evaluator
 from evalwire.evaluators.json_match import make_json_match_evaluator
@@ -11,6 +16,8 @@ from evalwire.evaluators.schema import make_schema_evaluator
 from evalwire.evaluators.top_k import make_top_k_evaluator
 
 __all__ = [
+    "make_all_pass_evaluator",
+    "make_any_pass_evaluator",
     "make_contains_evaluator",
     "make_exact_match_evaluator",
     "make_json_match_evaluator",
@@ -20,4 +27,5 @@ __all__ = [
     "make_regex_evaluator",
     "make_schema_evaluator",
     "make_top_k_evaluator",
+    "make_weighted_evaluator",
 ]
