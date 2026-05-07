@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.4.1...v0.5.0) (2026-05-07)
+
+
+### Features
+
+* add DatasetValidator for testset structural and content validation ([#52](https://github.com/zurfjereluhmie/evalwire/issues/52)) ([cb7374e](https://github.com/zurfjereluhmie/evalwire/commit/cb7374e8b15ed337f0d3dbb75a4a1aab13d414c6))
+* add evaluator composition factories (weighted, all-pass, any-pass) ([#51](https://github.com/zurfjereluhmie/evalwire/issues/51)) ([8010f40](https://github.com/zurfjereluhmie/evalwire/commit/8010f40d4417ad65c1a3eb69a4849749fd15394b))
+* add ResultCollector for experiment export, comparison and reporting ([#53](https://github.com/zurfjereluhmie/evalwire/issues/53)) ([c775ce4](https://github.com/zurfjereluhmie/evalwire/commit/c775ce4b894a0061faded8a63f64597dc2446468))
+
+
+### Documentation
+
+* rebrand evalwire as framework-agnostic evaluation tool ([#54](https://github.com/zurfjereluhmie/evalwire/issues/54)) ([5b695fd](https://github.com/zurfjereluhmie/evalwire/commit/5b695fd309e4cffbf93cd3af3660f33ad72c90f6))
+
 ## [0.4.1](https://github.com/zurfjereluhmie/evalwire/compare/v0.4.0...v0.4.1) (2026-05-04)
 
 
