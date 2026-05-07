@@ -4,6 +4,8 @@ import logging
 from importlib.metadata import version
 
 from evalwire.evaluators import (
+    make_all_pass_evaluator,
+    make_any_pass_evaluator,
     make_contains_evaluator,
     make_exact_match_evaluator,
     make_json_match_evaluator,
@@ -13,9 +15,9 @@ from evalwire.evaluators import (
     make_regex_evaluator,
     make_schema_evaluator,
     make_top_k_evaluator,
+    make_weighted_evaluator,
 )
 from evalwire.observability import setup_observability
-from evalwire.results import ResultCollector
 from evalwire.runner import ExperimentRunner
 from evalwire.uploader import DatasetUploader
 
@@ -26,7 +28,8 @@ logging.getLogger("evalwire").addHandler(logging.NullHandler())
 __all__ = [
     "DatasetUploader",
     "ExperimentRunner",
-    "ResultCollector",
+    "make_all_pass_evaluator",
+    "make_any_pass_evaluator",
     "make_contains_evaluator",
     "make_exact_match_evaluator",
     "make_json_match_evaluator",
@@ -36,10 +39,8 @@ __all__ = [
     "make_regex_evaluator",
     "make_schema_evaluator",
     "make_top_k_evaluator",
+    "make_weighted_evaluator",
     "setup_observability",
-    # LangGraph helpers — available when the `evalwire[langgraph]` extra is
-    # installed.  Importing from the top-level package is supported; if
-    # langgraph is absent the ImportError is raised at call time, not import time.
     "build_subgraph",
     "invoke_node",
 ]
