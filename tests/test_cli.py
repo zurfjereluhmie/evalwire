@@ -342,3 +342,77 @@ class TestReportCommand:
     def test_report_missing_experiment_flag_exits_nonzero(self):
         result = _runner().invoke(main, ["report"])
         assert result.exit_code != 0
+
+
+class TestValidateCommand:
+    def test_valid_csv_exits_zero(self, sample_csv: Path):
+        result = _runner().invoke(main, ["validate", "--csv", str(sample_csv)])
+        assert result.exit_code == 0
+        assert "valid" in result.output.lower()
+
+    def test_missing_csv_exits_nonzero(self):
+        result = _runner().invoke(main, ["validate"])
+        assert result.exit_code != 0
+
+    def test_invalid_csv_exits_nonzero(self, tmp_path: Path):
+        bad = tmp_path / "bad.csv"
+        bad.write_text("wrong_col\nval\n")
+        result = _runner().invoke(main, ["validate", "--csv", str(bad)])
+        assert result.exit_code != 0
+        assert "issue" in result.output.lower() or "missing" in result.output.lower()
+
+    def test_invalid_csv_reports_all_issues(self, tmp_path: Path):
+        bad = tmp_path / "bad.csv"
+        bad.write_text("wrong,also_wrong\nval,val\n")
+        result = _runner().invoke(
+            main,
+            [
+                "validate",
+                "--csv",
+                str(bad),
+                "--input-keys",
+                "user_query",
+                "--output-keys",
+                "expected_output",
+            ],
+        )
+        assert result.exit_code != 0
+        assert "user_query" in result.output or "expected_output" in result.output
+
+    def test_custom_input_output_tag_columns(self, tmp_path: Path):
+        f = tmp_path / "custom.csv"
+        f.write_text("q,ans,grp\nhello,world,g1\n")
+        result = _runner().invoke(
+            main,
+            [
+                "validate",
+                "--csv",
+                str(f),
+                "--input-keys",
+                "q",
+                "--output-keys",
+                "ans",
+                "--tag-column",
+                "grp",
+            ],
+        )
+        assert result.exit_code == 0
+
+
+class TestUploadStrictFlag:
+    def test_upload_strict_passes_for_valid_csv(self, sample_csv: Path):
+        client = _mock_client()
+        with patch("evalwire.cli._make_client", return_value=client):
+            result = _runner().invoke(
+                main, ["upload", "--csv", str(sample_csv), "--strict"]
+            )
+        assert result.exit_code == 0
+
+    def test_upload_strict_fails_for_invalid_csv(self, tmp_path: Path):
+        bad = tmp_path / "bad.csv"
+        bad.write_text("wrong\nval\n")
+        client = _mock_client()
+        with patch("evalwire.cli._make_client", return_value=client):
+            result = _runner().invoke(main, ["upload", "--csv", str(bad), "--strict"])
+        assert result.exit_code != 0
+        assert client.datasets.create_dataset.call_count == 0

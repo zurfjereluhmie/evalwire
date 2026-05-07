@@ -1,4 +1,4 @@
-"""evalwire CLI — ``evalwire upload``, ``evalwire run``, ``evalwire export``, ``evalwire compare``, and ``evalwire report`` commands."""
+"""evalwire CLI — ``evalwire upload``, ``evalwire run``, ``evalwire validate``, ``evalwire export``, ``evalwire compare``, and ``evalwire report`` commands."""
 
 import sys
 from typing import Literal, cast
@@ -59,6 +59,12 @@ def main() -> None:
     help="Pipe-split delimiter.",
 )
 @click.option(
+    "--strict",
+    is_flag=True,
+    default=False,
+    help="Abort upload if validation issues are found.",
+)
+@click.option(
     "--config",
     "config_path",
     default=None,
@@ -71,6 +77,7 @@ def upload_cmd(
     output_keys: str | None,
     tag_column: str | None,
     delimiter: str | None,
+    strict: bool,
     config_path: str | None,
 ) -> None:
     """Upload a CSV testset to Arize Phoenix as one or more named datasets."""
@@ -101,6 +108,26 @@ def upload_cmd(
             raise click.UsageError(
                 "No CSV path provided. Use --csv or set csv_path in evalwire.toml."
             )
+
+        if strict:
+            from evalwire.validator import DatasetValidator
+
+            validator = DatasetValidator()
+            result = validator.validate(
+                csv_path=resolved_csv,
+                input_keys=resolved_input_keys,
+                output_keys=resolved_output_keys,
+                tag_column=resolved_tag_column,
+            )
+            if not result.is_valid:
+                for issue in result.issues:
+                    row_info = f"row {issue.row}: " if issue.row is not None else ""
+                    click.echo(f"  {row_info}{issue.message}", err=True)
+                click.echo(
+                    f"Validation failed: {len(result.issues)} issue(s) found. Upload aborted.",
+                    err=True,
+                )
+                sys.exit(2)
 
         from evalwire.uploader import DatasetUploader
 
@@ -297,6 +324,63 @@ def report_cmd(experiment_id: str | None) -> None:
         rc = ResultCollector(client)
         report = rc.report(experiment_id)
         click.echo(report)
+    except click.UsageError:
+        raise
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(2)
+
+
+@main.command("validate")
+@click.option("--csv", "csv_path", default=None, help="Path to the CSV file.")
+@click.option(
+    "--input-keys",
+    default="user_query",
+    show_default=True,
+    help="Comma-separated input column names.",
+)
+@click.option(
+    "--output-keys",
+    default="expected_output",
+    show_default=True,
+    help="Comma-separated output column names.",
+)
+@click.option(
+    "--tag-column",
+    default="tags",
+    show_default=True,
+    help="Column used for dataset splitting.",
+)
+def validate_cmd(
+    csv_path: str | None,
+    input_keys: str,
+    output_keys: str,
+    tag_column: str,
+) -> None:
+    """Validate a CSV testset for structural and content correctness."""
+    if not csv_path:
+        raise click.UsageError("No CSV path provided. Use --csv.")
+    try:
+        from evalwire.validator import DatasetValidator
+
+        resolved_input_keys = [k.strip() for k in input_keys.split(",")]
+        resolved_output_keys = [k.strip() for k in output_keys.split(",")]
+
+        validator = DatasetValidator()
+        result = validator.validate(
+            csv_path=csv_path,
+            input_keys=resolved_input_keys,
+            output_keys=resolved_output_keys,
+            tag_column=tag_column,
+        )
+        if result.is_valid:
+            click.echo("Validation passed: testset is valid.")
+        else:
+            for issue in result.issues:
+                row_info = f"row {issue.row}: " if issue.row is not None else ""
+                click.echo(f"  {row_info}{issue.message}")
+            click.echo(f"Validation failed: {len(result.issues)} issue(s) found.")
+            sys.exit(1)
     except click.UsageError:
         raise
     except Exception as exc:
