@@ -2,7 +2,7 @@
 
 ![evalwire logo](docs/assets/logo.svg)
 
-> Systematic, reproducible evaluation of LangGraph nodes and subgraphs against human-curated testsets, tracked in Arize Phoenix.
+> Systematic, reproducible evaluation of any async callable — LangGraph nodes, plain Python functions, REST API endpoints, and more — tracked in Arize Phoenix.
 
 ---
 
@@ -12,12 +12,12 @@
 
 ## What it does
 
-When iterating on a LangGraph agent, it is hard to know whether a change to a specific node improved or degraded its behaviour. Running the full graph end-to-end is expensive and makes it difficult to attribute a score change to a specific component.
+When iterating on any LLM-powered callable — a LangGraph node, a plain Python function, or a REST endpoint — it is hard to know whether a change improved or degraded behaviour. Running the full system end-to-end is expensive and makes it difficult to attribute a score change to a specific component.
 
 `evalwire` solves this by:
 
 - Turning a human-curated CSV of queries and expected outputs into versioned [Arize Phoenix](https://phoenix.arize.com/) datasets.
-- Letting you define a **task** that isolates and invokes individual LangGraph nodes independently of the rest of the graph.
+- Letting you define a **task** — any `async def` callable — that isolates and invokes the component under test.
 - Running those tasks against the stored datasets, scoring each output with one or more **evaluators**, and recording results in Phoenix — giving you a reproducible, comparable experiment per run.
 
 ---
