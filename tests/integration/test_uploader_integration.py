@@ -66,21 +66,28 @@ class TestUploadLifecycle:
         search_ds = phoenix_client.datasets.get_dataset(dataset=search_tag)
         assert len(search_ds) == 2
 
-    def test_append_adds_examples(
-        self, phoenix_client, integration_csv: tuple[Path, str, str]
-    ):
-        csv_path, search_tag, _router_tag = integration_csv
-        uploader = DatasetUploader(
-            csv_path=csv_path,
-            phoenix_client=phoenix_client,
+    def test_append_adds_examples(self, phoenix_client, tmp_path: Path):
+        import uuid
+
+        tag = f"append_{uuid.uuid4().hex[:8]}"
+        csv_2 = tmp_path / "initial.csv"
+        csv_2.write_text(f"user_query,expected_output,tags\nq1,a1,{tag}\nq2,a2,{tag}\n")
+        csv_3 = tmp_path / "append.csv"
+        csv_3.write_text(
+            f"user_query,expected_output,tags\nq3,a3,{tag}\nq4,a4,{tag}\nq5,a5,{tag}\n"
         )
-        uploader.upload(on_exist="skip")
-        count_before = len(phoenix_client.datasets.get_dataset(dataset=search_tag))
 
-        uploader.upload(on_exist="append")
-        count_after = len(phoenix_client.datasets.get_dataset(dataset=search_tag))
+        DatasetUploader(csv_path=csv_2, phoenix_client=phoenix_client).upload(
+            on_exist="skip"
+        )
+        count_before = len(phoenix_client.datasets.get_dataset(dataset=tag))
 
-        assert count_after == count_before + 2  # 2 more "search" rows
+        DatasetUploader(csv_path=csv_3, phoenix_client=phoenix_client).upload(
+            on_exist="append"
+        )
+        count_after = len(phoenix_client.datasets.get_dataset(dataset=tag))
+
+        assert count_after == count_before + 3
 
     def test_custom_keys(self, phoenix_client, tmp_path: Path):
         import uuid
