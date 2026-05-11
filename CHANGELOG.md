@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.5.0...v0.6.0) (2026-05-11)
+
+
+### Features
+
+* add support for arize-phoenix v15.x.x ([#56](https://github.com/zurfjereluhmie/evalwire/issues/56)) ([095f653](https://github.com/zurfjereluhmie/evalwire/commit/095f653a83c4942268eb3b7ee6f7b67ee1b3116e))
+
 ## [0.5.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.4.1...v0.5.0) (2026-05-07)
 
 
