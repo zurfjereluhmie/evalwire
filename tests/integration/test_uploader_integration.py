@@ -80,15 +80,14 @@ class TestUploadLifecycle:
         DatasetUploader(csv_path=csv_2, phoenix_client=phoenix_client).upload(
             on_exist="skip"
         )
+        count_before = len(phoenix_client.datasets.get_dataset(dataset=tag))
 
         DatasetUploader(csv_path=csv_3, phoenix_client=phoenix_client).upload(
             on_exist="append"
         )
-
-        # Phoenix creates a new version per upload; get_dataset returns the
-        # latest version which contains only the 3 newly appended examples.
         count_after = len(phoenix_client.datasets.get_dataset(dataset=tag))
-        assert count_after == 3
+
+        assert count_after == count_before + 3
 
     def test_custom_keys(self, phoenix_client, tmp_path: Path):
         import uuid

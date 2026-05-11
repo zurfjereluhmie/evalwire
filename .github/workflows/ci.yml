@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        phoenix-major: [13, 14]
+        phoenix-major: [13, 14, 15]
 
     steps:
       - uses: actions/checkout@v6
