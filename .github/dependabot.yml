@@ -9,10 +9,6 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 10
-    groups:
-      python-deps:
-        patterns:
-          - "*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -21,7 +17,3 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 10
-    groups:
-      github-actions:
-        patterns:
-          - "*"
