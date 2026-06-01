@@ -110,7 +110,7 @@ wheels = [
 
 [[package]]
 name = "arize-phoenix"
-version = "15.10.1"
+version = "16.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aioitertools" },
@@ -166,9 +166,9 @@ dependencies = [
     { name = "uvicorn" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/45/f5/d5cf897e822445e46ee44d8bfaef8febf9d95172d973875987f37c7c4cbc/arize_phoenix-15.10.1.tar.gz", hash = "sha256:6ccc15bba32b39958923b1a0f0828f1329f994a9d07e55c20bbfa690e44e85f7", size = 4845731, upload-time = "2026-05-19T00:24:56.559Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/40/65/0646c3cce1294bfd6dd55d60eb03c3f7dbfdb1f239d8de349dacc3f326b1/arize_phoenix-16.0.0.tar.gz", hash = "sha256:a9d367f0b7f20b5c8e4941264b76af137fce7513b1c9d773e38883788b55629c", size = 4988346, upload-time = "2026-05-21T22:29:02.761Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/47/14/e82120266177e67d1a21a370cb8d1366a54b77651ff65037e04d9ba1da89/arize_phoenix-15.10.1-py3-none-any.whl", hash = "sha256:f8bf7b5949cc2ea16e06a120a7ebb9d993fa50026511306b48a0fbaa769e2dfe", size = 5138872, upload-time = "2026-05-19T00:24:53.602Z" },
+    { url = "https://files.pythonhosted.org/packages/92/0a/29994750b6b8a1ef4fd8d56b7ce3421fa9cba046d8ddff146e822afbd2c9/arize_phoenix-16.0.0-py3-none-any.whl", hash = "sha256:6853161e73b5687a9bbd1025053a7e51fa14763c24cc73027c539b5fec67a125", size = 5297860, upload-time = "2026-05-21T22:29:00.341Z" },
 ]
 
 [[package]]
@@ -904,7 +904,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "arize-phoenix", specifier = ">=13.0,<16" },
+    { name = "arize-phoenix", specifier = ">=13.0,<17" },
     { name = "click", specifier = ">=8.0" },
     { name = "evalwire", extras = ["langgraph", "langchain", "openai", "llm-judge"], marker = "extra == 'all'" },
     { name = "jsonschema", specifier = ">=4.0" },
@@ -919,7 +919,7 @@ provides-extras = ["langgraph", "langchain", "openai", "llm-judge", "all"]
 
 [package.metadata.requires-dev]
 demo = [
-    { name = "arize-phoenix", specifier = ">=13.0,<16" },
+    { name = "arize-phoenix", specifier = ">=13.0,<17" },
     { name = "evalwire", extras = ["langgraph", "openai"] },
     { name = "langchain", specifier = ">=1.0,<2" },
     { name = "langchain-core", specifier = ">=1.0,<2" },
