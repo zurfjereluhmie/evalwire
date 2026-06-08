@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.6.0...v0.7.0) (2026-06-08)
+
+
+### Features
+
+* bump the python-deps group with 8 updates ([#58](https://github.com/zurfjereluhmie/evalwire/issues/58)) ([c5418d9](https://github.com/zurfjereluhmie/evalwire/commit/c5418d90f766a7b5c28c5066683f87054f71f6f2))
+
 ## [0.6.0](https://github.com/zurfjereluhmie/evalwire/compare/v0.5.0...v0.6.0) (2026-05-11)
 
 
