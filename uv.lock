@@ -2386,7 +2386,7 @@ wheels = [
 
 [[package]]
 name = "openinference-instrumentation-openai"
-version = "0.1.49"
+version = "0.1.51"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "openinference-instrumentation" },
@@ -2397,9 +2397,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3c/ff/44e59d4932060fa3cd42c42e8407e7b60290fac7aa8792083a9f3e33e7ff/openinference_instrumentation_openai-0.1.49.tar.gz", hash = "sha256:d85df2d0e7a317e06345fb8072eebaf130e58537dbd4d5c2a7d73be4f3c46c29", size = 23005, upload-time = "2026-05-18T18:51:36.176Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b8/70/c606ead9bcffa294eab31313f3ddf78caea66fc0fa23a0b0c103eff62bd8/openinference_instrumentation_openai-0.1.51.tar.gz", hash = "sha256:2d3d2779bc71fb49374334b8214e38f3eeb30f97ff1a30a8da1bef3b3951b72a", size = 23013, upload-time = "2026-06-05T19:54:26.892Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/36/bf1522574989e6620b1f9aa73268d94662aed3fbf53b362c318921a5a462/openinference_instrumentation_openai-0.1.49-py3-none-any.whl", hash = "sha256:b2915ffd25ad00f6d00eb096d0634369c38306ef46e4536e391ad92c13016e22", size = 30437, upload-time = "2026-05-18T18:51:32.365Z" },
+    { url = "https://files.pythonhosted.org/packages/12/07/c60a4c8fc6cdf45a7e34077d091052affba770a23441f44aaccb7cd5d77e/openinference_instrumentation_openai-0.1.51-py3-none-any.whl", hash = "sha256:f15d9804a6d2290a06c93f0cdcdc051d8ddd3e3b989be8ad87c90063517eae14", size = 30454, upload-time = "2026-06-05T19:54:25.774Z" },
 ]
 
 [[package]]
